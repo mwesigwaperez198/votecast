@@ -3,211 +3,217 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DA_VELA Fashions | CMS</title>
+    <title>DA_VELA Fashions | Control Room</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600;700&family=Cormorant:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="app">
+    <div class="noise"></div>
+    <div class="vignette"></div>
+
+    <div class="shell">
         <aside class="sidebar">
-            <div class="sidebar-header">
+            <div class="sidebar-top">
                 <div class="brand">
-                    <div class="brand-mark">DV</div>
+                    <span class="brand-mark">DV</span>
                     <div class="brand-text">
-                        <div class="brand-title">DA_VELA</div>
-                        <div class="brand-sub">FASHIONS</div>
+                        <span class="brand-name">DA_VELA</span>
+                        <span class="brand-sub">FASHIONS</span>
                     </div>
                 </div>
-                <div class="sidebar-label">CMS</div>
+                <div class="sidebar-kicker">Control Room</div>
             </div>
             <nav class="nav">
-                <button class="nav-item active" data-tab="dashboard">Dashboard</button>
-                <button class="nav-item" data-tab="contestants">Contestants</button>
-                <button class="nav-item" data-tab="voting">Voting Control</button>
-                <button class="nav-item" data-tab="logs">Registration Logs</button>
-                <button class="nav-item" data-tab="qr">QR Generator</button>
-                <button class="nav-item" data-tab="settings">Settings</button>
+                <button class="nav-item active" data-tab="dashboard"><span>Overview</span></button>
+                <button class="nav-item" data-tab="contestants"><span>Models</span></button>
+                <button class="nav-item" data-tab="voting"><span>Session Control</span></button>
+                <button class="nav-item" data-tab="logs"><span>Audience Logs</span></button>
+                <button class="nav-item" data-tab="qr"><span>QR Access</span></button>
+                <button class="nav-item" data-tab="settings"><span>System</span></button>
             </nav>
-            <button class="logout-btn" id="logout-btn">Logout</button>
+            <div class="sidebar-bottom">
+                <a class="ghost-link" href="/scoreboard" target="_blank">Open Scoreboard</a>
+                <button class="ghost-link" id="logout-btn">Sign Out</button>
+            </div>
         </aside>
 
-        <main class="main">
-            <header class="main-header">
-                <h1 id="page-title">Dashboard</h1>
+        <main class="content">
+            <header class="content-header">
+                <div>
+                    <div class="page-kicker">DA_VELA Fashions</div>
+                    <h1 class="page-title" id="page-title">Overview</h1>
+                </div>
                 <div class="header-actions">
-                    <a href="/scoreboard" target="_blank" class="btn-link">Open Scoreboard</a>
-                    <a href="/voter" target="_blank" class="btn-link">Open Voter Site</a>
+                    <a class="pill-link" href="/voter" target="_blank">Voter Interface</a>
                 </div>
             </header>
 
-            <!-- Login Section -->
-            <section id="login-section" class="login-section">
-                <div class="login-card">
-                    <div class="login-header">
-                        <div class="brand-mark large">DV</div>
-                        <h2>Admin Access</h2>
-                        <p>DA_VELA Fashions CMS</p>
+            <section id="login-section" class="login-wrap">
+                <div class="login-panel">
+                    <div class="login-head">
+                        <div class="brand-mark lg">DV</div>
+                        <h2>Authorized Access</h2>
+                        <p>Control Room Authentication</p>
                     </div>
                     <form id="login-form" class="form">
-                        <div class="form-group">
+                        <div class="field">
                             <label>Username</label>
-                            <input type="text" id="login-username" required>
+                            <input id="login-username" type="text" autocomplete="username" required>
                         </div>
-                        <div class="form-group">
+                        <div class="field">
                             <label>Password</label>
-                            <input type="password" id="login-password" required>
+                            <input id="login-password" type="password" autocomplete="current-password" required>
                         </div>
-                        <button type="submit" class="btn btn-primary">Sign In</button>
+                        <button class="cta" type="submit"><span>Enter Control Room</span></button>
                     </form>
                 </div>
             </section>
 
-            <!-- Dashboard Tab -->
-            <section id="tab-dashboard" class="tab-section active">
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-label">Total Registered</div>
-                        <div class="stat-value" id="stat-total">0</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label">Voted</div>
-                        <div class="stat-value" id="stat-voted">0</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label">Total Votes</div>
-                        <div class="stat-value" id="stat-votes">0</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label">Status</div>
-                        <div class="stat-value small" id="stat-status">IDLE</div>
-                    </div>
+            <section id="tab-dashboard" class="tab active">
+                <div class="metric-grid">
+                    <article class="metric">
+                        <span class="metric-label">Registered Audience</span>
+                        <span class="metric-value" id="stat-total">0</span>
+                    </article>
+                    <article class="metric">
+                        <span class="metric-label">Votes Cast</span>
+                        <span class="metric-value" id="stat-voted">0</span>
+                    </article>
+                    <article class="metric">
+                        <span class="metric-label">Total Tally</span>
+                        <span class="metric-value" id="stat-votes">0</span>
+                    </article>
+                    <article class="metric">
+                        <span class="metric-label">Session State</span>
+                        <span class="metric-value sm" id="stat-status">IDLE</span>
+                    </article>
                 </div>
                 <div class="panel">
-                    <div class="panel-header">
-                        <h3>Live Standings</h3>
+                    <div class="panel-head-row">
+                        <div>
+                            <h2>Live Standings</h2>
+                            <p>Points recalculated in real-time</p>
+                        </div>
                     </div>
-                    <div id="standings-list" class="standings-list"></div>
+                    <div class="standings" id="standings-list"></div>
                 </div>
             </section>
 
-            <!-- Contestants Tab -->
-            <section id="tab-contestants" class="tab-section">
+            <section id="tab-contestants" class="tab">
                 <div class="panel">
-                    <div class="panel-header">
-                        <h3>Contestants / Models</h3>
-                        <button class="btn btn-small btn-primary" id="add-contestant-btn">Add Contestant</button>
+                    <div class="panel-head-row">
+                        <div>
+                            <h2>Models</h2>
+                            <p>Manage runway profiles</p>
+                        </div>
+                        <button class="cta sm" id="add-contestant-btn"><span>Add Model</span></button>
                     </div>
-                    <div id="contestants-table" class="table-wrap"></div>
+                    <div class="table-wrap" id="contestants-table"></div>
                 </div>
             </section>
 
-            <!-- Voting Control Tab -->
-            <section id="tab-voting" class="tab-section">
-                <div class="control-grid">
+            <section id="tab-voting" class="tab">
+                <div class="split">
                     <div class="panel">
-                        <div class="panel-header">
-                            <h3>Session Control</h3>
+                        <div class="panel-head-row">
+                            <div>
+                                <h2>Session Orchestration</h2>
+                                <p>Control the runway flow</p>
+                            </div>
                         </div>
-                        <div class="control-actions">
-                            <button class="control-btn" id="btn-start">Start Session (10s Countdown)</button>
-                            <button class="control-btn" id="btn-begin-voting">Begin Voting</button>
-                            <button class="control-btn" id="btn-runway-ended">Runway Ended (10s Countdown)</button>
-                            <button class="control-btn red" id="btn-declare-winner">Declare Winner</button>
-                            <button class="control-btn danger" id="btn-reset">Reset All Votes</button>
+                        <div class="action-stack">
+                            <button class="action" id="btn-start"><span>Start Session • 10s Countdown</span></button>
+                            <button class="action" id="btn-begin-voting"><span>Open Voting</span></button>
+                            <button class="action gold" id="btn-runway-ended"><span>Runway Ended • 10s Countdown</span></button>
+                            <button class="action red" id="btn-declare-winner"><span>Declare Winner</span></button>
+                            <button class="action ghost" id="btn-reset"><span>Reset All Tally</span></button>
                         </div>
                     </div>
                     <div class="panel">
-                        <div class="panel-header">
-                            <h3>Admin Voting (3 Points Each)</h3>
+                        <div class="panel-head-row">
+                            <div>
+                                <h2>Judges / Admin</h2>
+                                <p>Each vote carries 3 points • Unlimited</p>
+                            </div>
                         </div>
-                        <div id="admin-vote-list" class="admin-vote-list"></div>
+                        <div class="judge-list" id="admin-vote-list"></div>
                     </div>
                 </div>
             </section>
 
-            <!-- Logs Tab -->
-            <section id="tab-logs" class="tab-section">
+            <section id="tab-logs" class="tab">
                 <div class="panel">
-                    <div class="panel-header">
-                        <h3>Registration & Activity Logs</h3>
-                        <button class="btn btn-small" id="refresh-logs">Refresh</button>
+                    <div class="panel-head-row">
+                        <div>
+                            <h2>Registration Log</h2>
+                            <p>All audience entries captured</p>
+                        </div>
+                        <button class="ghost-btn" id="refresh-logs">Refresh</button>
                     </div>
-                    <div id="logs-table" class="table-wrap"></div>
+                    <div class="table-wrap" id="logs-table"></div>
                 </div>
-                <div class="panel" style="margin-top:20px">
-                    <div class="panel-header">
-                        <h3>Voters List</h3>
+                <div class="panel" style="margin-top:22px">
+                    <div class="panel-head-row">
+                        <div>
+                            <h2>Voter Directory</h2>
+                            <p>Name, Email, Telephone &amp; Status</p>
+                        </div>
                     </div>
-                    <div id="voters-table" class="table-wrap"></div>
-                </div>
-            </section>
-
-            <!-- QR Tab -->
-            <section id="tab-qr" class="tab-section">
-                <div class="panel center-panel">
-                    <div class="panel-header center">
-                        <h3>Voter Access QR Code</h3>
-                        <p>Scan to register and vote</p>
-                    </div>
-                    <div id="qr-container" class="qr-container"></div>
-                    <div id="qr-url" class="qr-url"></div>
-                    <button class="btn btn-primary" id="refresh-qr" style="max-width:200px;margin:20px auto 0;">Generate/Refresh QR</button>
+                    <div class="table-wrap" id="voters-table"></div>
                 </div>
             </section>
 
-            <!-- Settings Tab -->
-            <section id="tab-settings" class="tab-section">
+            <section id="tab-qr" class="tab">
+                <div class="panel qr-panel">
+                    <div class="panel-head-row center">
+                        <div>
+                            <h2>Audience Access</h2>
+                            <p>Direct guests to the voter portal</p>
+                        </div>
+                    </div>
+                    <div class="qr-frame" id="qr-container"></div>
+                    <div class="qr-url" id="qr-url"></div>
+                    <button class="cta" id="refresh-qr" style="align-self:center"><span>Refresh QR</span></button>
+                </div>
+            </section>
+
+            <section id="tab-settings" class="tab">
                 <div class="panel">
-                    <div class="panel-header">
-                        <h3>Event Settings</h3>
+                    <div class="panel-head-row">
+                        <div>
+                            <h2>Event Configuration</h2>
+                            <p>DA_VELA Fashions</p>
+                        </div>
                     </div>
-                    <div class="settings-info">
-                        <div class="setting-row"><span>Event Name</span><span>DA_VELA Fashions</span></div>
-                        <div class="setting-row"><span>Admin Vote Points</span><span>3 Points (Unlimited)</span></div>
-                        <div class="setting-row"><span>Audience Vote Points</span><span>1 Point</span></div>
+                    <div class="kv-list">
+                        <div class="kv"><span>Event</span><span>DA_VELA Fashions</span></div>
+                        <div class="kv"><span>Audience Vote Weight</span><span>1 Point</span></div>
+                        <div class="kv"><span>Admin / Judge Vote Weight</span><span>3 Points • No Limit</span></div>
+                        <div class="kv"><span>Branding</span><span>Novara Technologies Limited</span></div>
                     </div>
                 </div>
             </section>
         </main>
     </div>
 
-    <!-- Contestant Modal -->
     <div id="contestant-modal" class="modal">
         <div class="modal-backdrop"></div>
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="modal-title">Add Contestant</h3>
+        <div class="modal-card">
+            <div class="modal-head">
+                <h3 id="modal-title">Add Model</h3>
                 <button class="modal-close" id="modal-close">×</button>
             </div>
-            <form id="contestant-form" class="form">
+            <form id="contestant-form" class="form modal-form">
                 <input type="hidden" id="contestant-id">
-                <div class="form-group">
-                    <label>Full Name</label>
-                    <input type="text" id="c-name" required>
-                </div>
-                <div class="form-group">
-                    <label>Stage Name</label>
-                    <input type="text" id="c-stage">
-                </div>
-                <div class="form-group">
-                    <label>Category</label>
-                    <input type="text" id="c-category" placeholder="Fashion Model">
-                </div>
-                <div class="form-group">
-                    <label>Bio</label>
-                    <textarea id="c-bio"></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Photo URL</label>
-                    <input type="url" id="c-photo" placeholder="https://...">
-                </div>
-                <div class="form-group">
-                    <label>Display Order</label>
-                    <input type="number" id="c-order" value="0">
-                </div>
-                <button type="submit" class="btn btn-primary">Save</button>
+                <div class="field"><label>Full Name</label><input id="c-name" required></div>
+                <div class="field"><label>Stage Name</label><input id="c-stage"></div>
+                <div class="field"><label>Category</label><input id="c-category" placeholder="Fashion Model"></div>
+                <div class="field"><label>Biography</label><textarea id="c-bio"></textarea></div>
+                <div class="field"><label>Portrait URL</label><input id="c-photo" type="url" placeholder="https://..."></div>
+                <div class="field"><label>Display Order</label><input id="c-order" type="number" value="0"></div>
+                <button class="cta" type="submit"><span>Save Profile</span></button>
             </form>
         </div>
     </div>
