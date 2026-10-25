@@ -1,13 +1,12 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, HTMLResponse
 from app.core.database import engine, Base, SessionLocal, get_db
 from app.core import config, security
 from app.models import models
 from app.api import vote, admin
 import os
-import json
 from typing import List
 from sqlalchemy.orm import Session
 
@@ -128,21 +127,20 @@ async def scoreboard(db: Session = Depends(get_db)):
     }
 
 
-frontend_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "frontend")
-if not os.path.exists(frontend_dir):
-    frontend_dir = os.path.join("/app", "../frontend")
+def find_frontend_base():
+    candidates = [
+        os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "frontend"),
+        os.path.join("/app", "frontend"),
+        "/app/frontend",
+        os.path.abspath("./frontend"),
+    ]
+    for c in candidates:
+        if os.path.exists(c):
+            return c
+    return "/app/frontend"
 
-voter_dir = os.path.join(frontend_dir, "voter")
-cms_dir = os.path.join(frontend_dir, "cms")
-scoreboard_dir = os.path.join(frontend_dir, "scoreboard")
 
-if os.path.exists(voter_dir):
-    app.mount("/voter", StaticFiles(directory=voter_dir, html=True), name="voter")
-if os.path.exists(cms_dir):
-    app.mount("/cms", StaticFiles(directory=cms_dir, html=True), name="cms")
-if os.path.exists(scoreboard_dir):
-    app.mount("/scoreboard", StaticFiles(directory=scoreboard_dir, html=True), name="scoreboard")
-    app.mount("/dashboard", StaticFiles(directory=scoreboard_dir, html=True), name="dashboard")
+frontend_dir = find_frontend_base()
 
 
 @app.get("/")
@@ -150,9 +148,47 @@ async def root():
     voter_index = os.path.join(frontend_dir, "voter", "index.html")
     if os.path.exists(voter_index):
         return FileResponse(voter_index)
-    return {"message": "VoteCast API - DA_VELA Fashions"}
+    return {"message": "VoteCast API - DA_VELA Fashions", "frontend_dir": frontend_dir}
+
+
+@app.get("/voter")
+async def voter_page():
+    voter_index = os.path.join(frontend_dir, "voter", "index.html")
+    if os.path.exists(voter_index):
+        return FileResponse(voter_index)
+    raise HTTPException(status_code=404, detail="Not Found")
+
+
+@app.get("/cms")
+async def cms_page():
+    cms_index = os.path.join(frontend_dir, "cms", "index.html")
+    if os.path.exists(cms_index):
+        return FileResponse(cms_index)
+    raise HTTPException(status_code=404, detail="Not Found")
+
+
+@app.get("/scoreboard")
+async def scoreboard_page():
+    sb_index = os.path.join(frontend_dir, "scoreboard", "index.html")
+    if os.path.exists(sb_index):
+        return FileResponse(sb_index)
+    raise HTTPException(status_code=404, detail="Not Found")
+
+
+@app.get("/dashboard")
+async def dashboard_page():
+    return await scoreboard_page()
 
 
 @app.get("/health")
 async def health_simple():
     return {"status": "healthy"}
+
+
+# Mount static assets
+from fastapi import HTTPException
+
+for route, folder in [("/voter", "voter"), ("/cms", "cms"), ("/scoreboard", "scoreboard"), ("/dashboard", "scoreboard")]:
+    path = os.path.join(frontend_dir, folder)
+    if os.path.exists(path):
+        app.mount(route, StaticFiles(directory=path, html=True), name=folder)
