@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DA_VELA Fashions | Vote</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app">
+        <header class="header">
+            <div class="brand">
+                <div class="brand-mark">DV</div>
+                <div class="brand-text">
+                    <div class="brand-title">DA_VELA</div>
+                    <div class="brand-sub">FASHIONS</div>
+                </div>
+            </div>
+            <div class="event-name">LIVE VOTING</div>
+        </header>
+
+        <section id="register-section" class="section active">
+            <div class="card">
+                <div class="card-header">
+                    <h1>Cast Your Vote</h1>
+                    <p>Register to participate in the runway showcase</p>
+                </div>
+                <form id="register-form" class="form">
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" id="reg-name" required autocomplete="name" placeholder="Enter your full name">
+                    </div>
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" id="reg-email" required autocomplete="email" placeholder="you@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Telephone Number</label>
+                        <input type="tel" id="reg-phone" required autocomplete="tel" placeholder="+256 ...">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Continue to Vote</button>
+                </form>
+            </div>
+        </section>
+
+        <section id="vote-section" class="section">
+            <div class="vote-header">
+                <h2>Choose Your Model</h2>
+                <p id="voter-info"></p>
+            </div>
+            <div id="contestants-grid" class="contestants-grid"></div>
+            <div id="voted-message" class="voted-message" style="display:none;">
+                <div class="checkmark">✓</div>
+                <h2>Thank You</h2>
+                <p>Your vote has been recorded</p>
+            </div>
+        </section>
+
+        <section id="closed-section" class="section">
+            <div class="card center">
+                <h2>Voting Not Open</h2>
+                <p id="closed-message">Please wait for the session to begin</p>
+            </div>
+        </section>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

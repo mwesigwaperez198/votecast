@@ -1,0 +1,343 @@
+:root {
+    --deep-green: #0b3d23;
+    --green: #0f7c3e;
+    --red: #d62828;
+    --red-bright: #e63946;
+    --black: #000000;
+    --dark: #101010;
+    --bg: #050505;
+    --card: #0a0a0a;
+    --text: #f5f5f5;
+    --text-dim: #a3a3a3;
+    --border: rgba(255,255,255,0.08);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: radial-gradient(ellipse at top, #0f7c3e15 0%, var(--bg) 50%);
+    color: var(--text);
+    min-height: 100dvh;
+    line-height: 1.6;
+}
+
+.app {
+    max-width: 480px;
+    margin: 0 auto;
+    min-height: 100dvh;
+    padding: 0 16px 40px;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 24px 0 32px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 32px;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.brand-mark {
+    width: 44px;
+    height: 44px;
+    background: linear-gradient(135deg, var(--green) 0%, var(--deep-green) 100%);
+    border: 1px solid rgba(15, 124, 62, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 14px;
+    letter-spacing: 0.05em;
+    position: relative;
+}
+
+.brand-mark::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border: 1px solid var(--red);
+    opacity: 0.6;
+}
+
+.brand-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1;
+}
+
+.brand-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    font-weight: 800;
+    letter-spacing: 0.15em;
+}
+
+.brand-sub {
+    font-size: 9px;
+    letter-spacing: 0.4em;
+    color: var(--text-dim);
+    margin-top: 4px;
+}
+
+.event-name {
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    color: var(--red);
+    font-weight: 600;
+}
+
+.section {
+    display: none;
+}
+
+.section.active {
+    display: block;
+    animation: fadeIn 0.4s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.card {
+    background: linear-gradient(180deg, rgba(15, 124, 62, 0.08) 0%, var(--card) 100%);
+    border: 1px solid var(--border);
+    padding: 32px 24px;
+    position: relative;
+}
+
+.card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--green), transparent);
+}
+
+.card-header {
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.card-header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    letter-spacing: -0.02em;
+}
+
+.card-header p {
+    color: var(--text-dim);
+    font-size: 14px;
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-group label {
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+}
+
+.form-group input {
+    width: 100%;
+    padding: 14px 16px;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    transition: all 0.2s ease;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: var(--green);
+    background: rgba(15, 124, 62, 0.05);
+}
+
+.form-group input::placeholder {
+    color: rgba(163,163,163,0.5);
+}
+
+.btn {
+    width: 100%;
+    padding: 16px;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--green) 0%, var(--deep-green) 100%);
+    color: white;
+    border: 1px solid rgba(15, 124, 62, 0.6);
+}
+
+.btn-primary:hover {
+    box-shadow: 0 8px 32px rgba(15, 124, 62, 0.4);
+    transform: translateY(-2px);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+}
+
+.vote-header {
+    text-align: center;
+    margin-bottom: 28px;
+}
+
+.vote-header h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 26px;
+    margin-bottom: 6px;
+}
+
+.vote-header p {
+    color: var(--text-dim);
+    font-size: 13px;
+}
+
+.contestants-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.contestant-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: all 0.25s ease;
+    position: relative;
+}
+
+.contestant-card:hover {
+    border-color: rgba(15, 124, 62, 0.5);
+    background: linear-gradient(90deg, rgba(15, 124, 62, 0.1) 0%, var(--card) 100%);
+}
+
+.contestant-card:active {
+    transform: scale(0.98);
+}
+
+.contestant-photo {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--deep-green), var(--black));
+    border: 2px solid var(--border);
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.contestant-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.contestant-name {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 2px;
+}
+
+.contestant-stage {
+    font-size: 13px;
+    color: var(--text-dim);
+}
+
+.contestant-vote {
+    padding: 10px 18px;
+    background: transparent;
+    border: 1px solid var(--green);
+    color: var(--green);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.voted-message {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.checkmark {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--green), var(--deep-green));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    margin: 0 auto 24px;
+    border: 2px solid rgba(15, 124, 62, 0.5);
+}
+
+.voted-message h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    margin-bottom: 8px;
+}
+
+.voted-message p {
+    color: var(--text-dim);
+}
+
+.card.center {
+    text-align: center;
+    padding: 60px 24px;
+}
+
+.card.center h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 26px;
+    margin-bottom: 10px;
+}
+
+.card.center p {
+    color: var(--text-dim);
+}

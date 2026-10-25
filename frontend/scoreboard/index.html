@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DA_VELA Fashions | Live Scoreboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:wght@600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="scoreboard">
+        <header class="sb-header">
+            <div class="sb-brand">
+                <div class="sb-mark">DV</div>
+                <div class="sb-brand-text">
+                    <div class="sb-title">DA_VELA</div>
+                    <div class="sb-sub">FASHIONS</div>
+                </div>
+            </div>
+            <div class="sb-event">LIVE SCOREBOARD</div>
+            <div class="sb-status" id="sb-status">WAITING</div>
+        </header>
+
+        <main class="sb-main">
+            <div id="countdown-overlay" class="countdown-overlay">
+                <div class="countdown-number" id="countdown-number">10</div>
+                <div class="countdown-label" id="countdown-label">GET READY</div>
+            </div>
+
+            <div id="winner-overlay" class="winner-overlay">
+                <div class="winner-bg"></div>
+                <div class="winner-content">
+                    <div class="winner-label">WINNER</div>
+                    <img id="winner-photo" src="" alt="" class="winner-photo">
+                    <div class="winner-name" id="winner-name"></div>
+                    <div class="winner-stage" id="winner-stage"></div>
+                    <div class="winner-stats">
+                        <div class="winner-stat">
+                            <div class="winner-stat-value" id="winner-points"></div>
+                            <div class="winner-stat-label">POINTS</div>
+                        </div>
+                        <div class="winner-stat">
+                            <div class="winner-stat-value" id="winner-total-voters"></div>
+                            <div class="winner-stat-label">TOTAL VOTERS</div>
+                        </div>
+                        <div class="winner-stat">
+                            <div class="winner-stat-value" id="winner-pct"></div>
+                            <div class="winner-stat-label">ANALYSIS</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="leaderboard" class="leaderboard"></div>
+        </main>
+
+        <footer class="sb-footer">
+            <div class="sb-footer-text">POWERED BY NOVARA TECHNOLOGIES LIMITED</div>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

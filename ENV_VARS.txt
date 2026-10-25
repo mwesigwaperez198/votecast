@@ -1,0 +1,7 @@
+DATABASE_URL=postgresql://user:pass@host:5432/votecast
+SECRET_KEY=your-super-secret-key-here
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=your-admin-password
+CORS_ORIGINS=*
+EVENT_NAME=DA_VELA Fashions
+ENVIRONMENT=production
