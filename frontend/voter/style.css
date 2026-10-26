@@ -1,4 +1,4 @@
-:root {
+ :root {
     --bg: #000000;
     --bg-2: #050805;
     --green: #0f7c3e;
@@ -365,6 +365,37 @@ body {
     gap: clamp(16px, 4vw, 24px);
 }
 
+.gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 12px;
+    margin-top: 4px;
+}
+
+.gallery-item {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--line);
+    overflow: hidden;
+}
+
+.gallery-item img {
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+    display: block;
+}
+
+.gallery-item span {
+    padding: 0 10px 12px;
+    color: var(--text-sub);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
 .model-card {
     position: relative;
     display: flex;
@@ -512,12 +543,26 @@ body {
 .footer {
     position: relative;
     z-index: 2;
-    text-align: center;
+    display: flex;
+    justify-content: center;
     padding: 18px;
-    text-transform: uppercase;
-    letter-spacing: 0.4em;
     font-size: 9px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
     color: var(--text-dim);
+}
+
+.footer-meta {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    text-align: center;
+}
+
+.footer-meta a {
+    color: var(--text-dim);
+    text-decoration: none;
 }
 
 @media (max-width: 680px) {
@@ -529,6 +574,9 @@ body {
         transform: translate(3px, -3px);
     }
     .hero-title {
+        letter-spacing: 0.18em;
+    }
+    .footer {
         letter-spacing: 0.18em;
     }
 }

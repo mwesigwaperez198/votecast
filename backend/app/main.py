@@ -1,8 +1,7 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, Response
-from app.core.database import engine, Base, SessionLocal, get_db
+from fastapi.responses import FileResponse
+from app.core.database import engine, Base, SessionLocal
 from app.core import config, security
 from app.models import models
 from app.api import vote, admin
@@ -87,6 +86,32 @@ async def websocket_endpoint(websocket: WebSocket):
 @app.get("/api/health")
 async def health():
     return {"status": "ok", "app": "VoteCast", "event": config.settings.EVENT_NAME}
+
+
+@app.get("/api/gallery")
+async def gallery(db: Session = Depends(get_db)):
+    contestants = db.query(models.Contestant).filter(models.Contestant.is_active == True).order_by(models.Contestant.order_index).all()
+    items = []
+    for contestant in contestants:
+        if contestant.photo_url:
+            items.append({
+                "id": contestant.id,
+                "name": contestant.name,
+                "stage_name": contestant.stage_name,
+                "category": contestant.category,
+                "image_url": contestant.photo_url,
+            })
+
+    if not items:
+        items = [{
+            "id": 0,
+            "name": "DA_VELA Fashions",
+            "stage_name": "Runway Gallery",
+            "category": "Fashion Show",
+            "image_url": "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?q=80&w=1200&auto=format&fit=crop",
+        }]
+
+    return {"gallery": items}
 
 
 @app.get("/api/scoreboard")
