@@ -1,12 +1,13 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 from app.core.database import engine, Base, SessionLocal, get_db
 from app.core import config, security
 from app.models import models
 from app.api import vote, admin
 import os
+import mimetypes
 from typing import List
 from sqlalchemy.orm import Session
 
@@ -131,100 +132,109 @@ async def scoreboard(db: Session = Depends(get_db)):
 def find_frontend_base():
     candidates = [
         os.environ.get("FRONTEND_DIR"),
-        os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "frontend"),
-        os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "frontend"),
         "/app/frontend",
-        os.path.abspath("./frontend"),
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "frontend"),
+        os.path.join(os.getcwd(), "frontend"),
     ]
     for c in candidates:
         if c and os.path.exists(c):
             return os.path.abspath(c)
-    return os.path.abspath("./frontend")
+    return "/app/frontend"
 
 
 frontend_dir = find_frontend_base()
-
-
-def serve_file(section: str, filename: str):
-    path = os.path.join(frontend_dir, section, filename)
-    if not os.path.exists(path):
-        raise HTTPException(status_code=404, detail="Not Found")
-    return FileResponse(path)
+mimetypes.add_type('text/css', '.css')
+mimetypes.add_type('application/javascript', '.js')
+mimetypes.add_type('text/javascript', '.js')
 
 
 @app.get("/")
 async def root():
     voter_index = os.path.join(frontend_dir, "voter", "index.html")
     if os.path.exists(voter_index):
-        return FileResponse(voter_index)
+        return FileResponse(voter_index, media_type="text/html")
     return {"message": "VoteCast API - DA_VELA Fashions"}
 
 
 @app.get("/voter")
+@app.get("/voter/")
 @app.get("/vote")
 async def voter_page():
     voter_index = os.path.join(frontend_dir, "voter", "index.html")
     if os.path.exists(voter_index):
-        return FileResponse(voter_index)
+        return FileResponse(voter_index, media_type="text/html")
     raise HTTPException(status_code=404, detail="Not Found")
 
 
-@app.get("/voter/{filename:path}")
-async def voter_assets(filename: str):
-    if filename == "" or filename.endswith("/"):
-        return await voter_page()
-    return serve_file("voter", filename)
+@app.get("/voter/style.css")
+async def voter_css():
+    path = os.path.join(frontend_dir, "voter", "style.css")
+    if os.path.exists(path):
+        return FileResponse(path, media_type="text/css")
+    raise HTTPException(status_code=404, detail="Not Found")
+
+
+@app.get("/voter/app.js")
+async def voter_js():
+    path = os.path.join(frontend_dir, "voter", "app.js")
+    if os.path.exists(path):
+        return FileResponse(path, media_type="application/javascript")
+    raise HTTPException(status_code=404, detail="Not Found")
 
 
 @app.get("/cms")
+@app.get("/cms/")
 @app.get("/admin")
 async def cms_page():
     cms_index = os.path.join(frontend_dir, "cms", "index.html")
     if os.path.exists(cms_index):
-        return FileResponse(cms_index)
+        return FileResponse(cms_index, media_type="text/html")
     raise HTTPException(status_code=404, detail="Not Found")
 
 
-@app.get("/cms/{filename:path}")
-async def cms_assets(filename: str):
-    if filename == "" or filename.endswith("/"):
-        return await cms_page()
-    return serve_file("cms", filename)
+@app.get("/cms/style.css")
+async def cms_css():
+    path = os.path.join(frontend_dir, "cms", "style.css")
+    if os.path.exists(path):
+        return FileResponse(path, media_type="text/css")
+    raise HTTPException(status_code=404, detail="Not Found")
+
+
+@app.get("/cms/app.js")
+async def cms_js():
+    path = os.path.join(frontend_dir, "cms", "app.js")
+    if os.path.exists(path):
+        return FileResponse(path, media_type="application/javascript")
+    raise HTTPException(status_code=404, detail="Not Found")
 
 
 @app.get("/scoreboard")
+@app.get("/scoreboard/")
 @app.get("/dashboard")
+@app.get("/dashboard/")
 async def scoreboard_page():
     sb_index = os.path.join(frontend_dir, "scoreboard", "index.html")
     if os.path.exists(sb_index):
-        return FileResponse(sb_index)
+        return FileResponse(sb_index, media_type="text/html")
     raise HTTPException(status_code=404, detail="Not Found")
 
 
-@app.get("/scoreboard/{filename:path}")
-async def scoreboard_assets(filename: str):
-    if filename == "" or filename.endswith("/"):
-        return await scoreboard_page()
-    return serve_file("scoreboard", filename)
+@app.get("/scoreboard/style.css")
+async def scoreboard_css():
+    path = os.path.join(frontend_dir, "scoreboard", "style.css")
+    if os.path.exists(path):
+        return FileResponse(path, media_type="text/css")
+    raise HTTPException(status_code=404, detail="Not Found")
 
 
-@app.get("/dashboard/{filename:path}")
-async def dashboard_assets(filename: str):
-    if filename == "" or filename.endswith("/"):
-        return await scoreboard_page()
-    return serve_file("scoreboard", filename)
+@app.get("/scoreboard/app.js")
+async def scoreboard_js():
+    path = os.path.join(frontend_dir, "scoreboard", "app.js")
+    if os.path.exists(path):
+        return FileResponse(path, media_type="application/javascript")
+    raise HTTPException(status_code=404, detail="Not Found")
 
 
 @app.get("/health")
 async def health_simple():
     return {"status": "healthy"}
-
-
-# Mount static files as well
-for route, folder in [("/voter", "voter"), ("/cms", "cms"), ("/scoreboard", "scoreboard"), ("/dashboard", "scoreboard")]:
-    path = os.path.join(frontend_dir, folder)
-    if os.path.exists(path):
-        try:
-            app.mount(route, StaticFiles(directory=path, html=True), name=f"static_{folder}")
-        except Exception:
-            pass
