@@ -5,6 +5,7 @@ const voteSection = document.getElementById('vote-section');
 const closedSection = document.getElementById('closed-section');
 const registerForm = document.getElementById('register-form');
 const ballotGrid = document.getElementById('ballot-grid');
+const gallery = document.getElementById('gallery');
 const voterChip = document.getElementById('voter-chip');
 const doneState = document.getElementById('done-state');
 const closedText = document.getElementById('closed-text');
@@ -26,6 +27,32 @@ async function fetchState() {
 function show(view) {
     document.querySelectorAll('.view').forEach((el) => el.classList.remove('active'));
     view.classList.add('active');
+}
+
+async function loadGallery() {
+    if (!gallery) return;
+    try {
+        const res = await fetch(`${API_BASE}/api/gallery`, { cache: 'no-store' });
+        const data = await res.json();
+        const items = data.gallery || [];
+
+        if (!items.length) {
+            gallery.innerHTML = '';
+            return;
+        }
+
+        gallery.innerHTML = items.map((item) => `
+            <article class="gallery-item">
+                <img src="${item.image_url || 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?q=80&w=1200&auto=format&fit=crop'}" alt="${item.name || 'Gallery image'}" onerror="this.src='https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?q=80&w=1200&auto=format&fit=crop'">
+                <div class="gallery-meta">
+                    <strong>${item.name || 'DA_VELA Model'}</strong>
+                    <span>${item.stage_name || item.category || 'Fashion Model'}</span>
+                </div>
+            </article>
+        `).join('');
+    } catch (e) {
+        console.error('Gallery load failed', e);
+    }
 }
 
 registerForm.addEventListener('submit', async (e) => {
@@ -122,6 +149,7 @@ async function route() {
             if (voterChip) voterChip.textContent = voterInfo.name.toUpperCase();
             show(voteSection);
             loadBallot();
+            loadGallery();
         } else {
             show(registerSection);
         }

@@ -1,19 +1,13 @@
 # VoteCast - DA_VELA Fashions Live Voting & Scoreboard
 
-Web-App Live Audience Voting & Scoreboard by Novara Technologies Limited.
+VoteCast is the live audience voting and scoreboard system for DA_VELA Fashions events. It helps organizers run a smooth fashion-show voting experience from registration to final winner announcement, while keeping every vote visible on a live display for the audience.
 
-## Routes
-- `/voter` - Voter registration & voting (scan QR)
-- `/cms` - CMS Admin Dashboard
-- `/scoreboard` - Live projector scoreboard
+## What the system does
+- Lets attendees register quickly with their name, email, and phone number from a QR-driven voter page.
+- Opens a live ballot for audience voting during the event session.
+- Gives admins and judges a secure control dashboard to manage contestants, session states, and winner decisions.
+- Shows a live scoreboard on a projector or secondary screen for real-time rankings.
+- Records votes and registration activity in the admin logs for event monitoring.
 
-## Colors
-- Deep Green: #0b3d23 / #0f7c3e
-- Bagandi Red: #d62828 / #e63946
-- Black: #000000 / #101010
-
-## Tech Stack
-- Backend: FastAPI + SQLAlchemy
-- DB: SQLite (WAL) / PostgreSQL
-- Frontend: Vanilla HTML/CSS/JS (human-crafted feel)
-- Real-time: WebSocket
+## Project focus
+VoteCast is designed for DA_VELA Fashions runway events, with a clean, modern presentation and a simple voting flow that feels natural for live audience participation.

@@ -1,0 +1,16 @@
+# Local project files
+AGENTS.md
+**/AGENTS.md
+AGENTS
+**/AGENTS
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+
+# App data
+*.db
+.env
+.DS_Store

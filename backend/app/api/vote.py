@@ -10,6 +10,22 @@ import json
 
 router = APIRouter()
 
+@router.get("/gallery")
+async def get_gallery(db: Session = Depends(get_db)):
+    contestants = db.query(models.Contestant).filter(models.Contestant.is_active == True).order_by(models.Contestant.order_index).all()
+    return {
+        "gallery": [
+            {
+                "id": c.id,
+                "name": c.name,
+                "stage_name": c.stage_name,
+                "category": c.category,
+                "image_url": c.photo_url,
+            }
+            for c in contestants
+        ]
+    }
+
 @router.post("/register")
 async def register_voter(voter: schemas.VoterRegister, request: Request, db: Session = Depends(get_db)):
     existing = db.query(models.Voter).filter(models.Voter.email == voter.email).first()

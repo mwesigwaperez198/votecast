@@ -12,7 +12,6 @@ import json
 router = APIRouter()
 
 def verify_admin(request: Request, db: Session = Depends(get_db)):
-    # Simple token check from header
     token = request.headers.get("Authorization")
     if not token:
         raise HTTPException(status_code=401, detail="Not authenticated")
@@ -21,6 +20,8 @@ def verify_admin(request: Request, db: Session = Depends(get_db)):
     payload = security.decode_token(token)
     if not payload:
         raise HTTPException(status_code=401, detail="Invalid token")
+    if payload.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Forbidden: admin access required")
     return payload
 
 @router.post("/login")
@@ -73,7 +74,6 @@ async def delete_contestant(contestant_id: int, request: Request, db: Session = 
 
 @router.post("/vote")
 async def admin_cast_vote(vote_req: schemas.AdminVoteRequest, request: Request, db: Session = Depends(get_db), admin=Depends(verify_admin)):
-    # Admin/judge can vote multiple times, each vote = 3 points
     contestant = db.query(models.Contestant).filter(models.Contestant.id == vote_req.contestant_id).first()
     if not contestant or not contestant.is_active:
         raise HTTPException(status_code=404, detail="Contestant not found")
@@ -90,6 +90,7 @@ async def admin_cast_vote(vote_req: schemas.AdminVoteRequest, request: Request, 
     )
     db.add(ledger_entry)
     
+    contestant.votes_count += 1
     contestant.admin_votes_count += 1
     contestant.points_total += config.settings.VOTE_POINTS_ADMIN
     
@@ -98,12 +99,12 @@ async def admin_cast_vote(vote_req: schemas.AdminVoteRequest, request: Request, 
     log_entry = models.LogEntry(
         log_type="vote",
         message=f"Admin vote cast ({config.settings.VOTE_POINTS_ADMIN} pts) for {contestant.name}",
-        data=json.dumps({"contestant_id": contestant.id, "points": 3, "voter_type": "admin"})
+        data=json.dumps({"contestant_id": contestant.id, "points": 3, "voter_type": "admin", "vote_count": contestant.votes_count})
     )
     db.add(log_entry)
     db.commit()
     
-    return {"message": f"Admin vote cast (+{config.settings.VOTE_POINTS_ADMIN} pts)", "contestant": contestant.name, "points": 3}
+    return {"message": f"Admin vote cast (+{config.settings.VOTE_POINTS_ADMIN} pts)", "contestant": contestant.name, "points": 3, "votes": contestant.votes_count}
 
 @router.post("/event/control")
 async def control_event(control: schemas.EventControl, request: Request, db: Session = Depends(get_db), admin=Depends(verify_admin)):
@@ -136,7 +137,6 @@ async def control_event(control: schemas.EventControl, request: Request, db: Ses
         log_entry = models.LogEntry(log_type="admin_action", message="Runway ended - winner countdown initiated", data=json.dumps({"action": "runway_ended"}))
         db.add(log_entry)
     elif action == "declare_winner":
-        # Find winner by highest points
         winner = db.query(models.Contestant).filter(models.Contestant.is_active == True).order_by(models.Contestant.points_total.desc()).first()
         if winner:
             state.winner_id = winner.id
@@ -149,7 +149,6 @@ async def control_event(control: schemas.EventControl, request: Request, db: Ses
         state.countdown_value = 0
         state.winner_declared = False
         state.winner_id = None
-        # Reset votes
         db.query(models.Contestant).update({models.Contestant.votes_count: 0, models.Contestant.admin_votes_count: 0, models.Contestant.points_total: 0})
         db.query(models.Voter).update({models.Voter.has_voted: False, models.Voter.voted_at: None})
     
@@ -205,7 +204,6 @@ async def get_voters(db: Session = Depends(get_db), admin=Depends(verify_admin))
 
 @router.get("/qr")
 async def generate_qr(request: Request):
-    # Generate QR code pointing to voter URL
     import qrcode
     import io
     import base64
