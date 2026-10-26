@@ -1,4 +1,4 @@
- :root {
+:root {
     --bg: #000000;
     --bg-2: #050805;
     --green: #0f7c3e;
@@ -367,33 +367,50 @@ body {
 
 .gallery {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-    gap: 12px;
-    margin-top: 4px;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-top: 10px;
 }
 
 .gallery-item {
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid var(--line);
     overflow: hidden;
+    border: 1px solid var(--line);
+    background: rgba(255, 255, 255, 0.02);
+    transition: transform 0.25s ease, border-color 0.25s ease;
+}
+
+.gallery-item:hover {
+    transform: translateY(-4px);
+    border-color: rgba(15, 124, 62, 0.8);
 }
 
 .gallery-item img {
     width: 100%;
-    aspect-ratio: 4 / 5;
+    height: 220px;
     object-fit: cover;
     display: block;
 }
 
-.gallery-item span {
-    padding: 0 10px 12px;
-    color: var(--text-sub);
-    font-size: 11px;
-    letter-spacing: 0.12em;
+.gallery-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 12px 14px 16px;
+}
+
+.gallery-meta strong {
+    font-size: 14px;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
+}
+
+.gallery-meta span {
+    font-size: 10px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.28em;
 }
 
 .model-card {
@@ -544,11 +561,18 @@ body {
     position: relative;
     z-index: 2;
     display: flex;
+    flex-direction: column;
+    align-items: center;
     justify-content: center;
+    gap: 8px;
     padding: 18px;
-    font-size: 9px;
-    letter-spacing: 0.28em;
+    text-align: center;
+}
+
+.footer-brand {
     text-transform: uppercase;
+    letter-spacing: 0.32em;
+    font-size: 9px;
     color: var(--text-dim);
 }
 
@@ -556,13 +580,11 @@ body {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 10px;
-    text-align: center;
-}
-
-.footer-meta a {
-    color: var(--text-dim);
-    text-decoration: none;
+    gap: 12px;
+    font-size: 9px;
+    letter-spacing: 0.16em;
+    text-transform: lowercase;
+    color: rgba(248, 247, 244, 0.6);
 }
 
 @media (max-width: 680px) {
@@ -576,7 +598,9 @@ body {
     .hero-title {
         letter-spacing: 0.18em;
     }
-    .footer {
-        letter-spacing: 0.18em;
+    .footer-meta {
+        flex-direction: column;
+        gap: 4px;
+        letter-spacing: 0.12em;
     }
 }

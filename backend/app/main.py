@@ -23,7 +23,6 @@ app.add_middleware(
 
 Base.metadata.create_all(bind=engine)
 
-
 def init_db():
     db = SessionLocal()
     try:
@@ -44,9 +43,7 @@ def init_db():
     finally:
         db.close()
 
-
 init_db()
-
 
 class ConnectionManager:
     def __init__(self):
@@ -67,12 +64,26 @@ class ConnectionManager:
             except Exception:
                 pass
 
-
 manager = ConnectionManager()
 
 app.include_router(vote.router, prefix="/api/vote", tags=["Vote"])
 app.include_router(admin.router, prefix="/api/admin", tags=["Admin"])
 
+@app.get("/api/gallery")
+async def gallery_api(db: Session = Depends(get_db)):
+    contestants = db.query(models.Contestant).filter(models.Contestant.is_active == True).order_by(models.Contestant.order_index).all()
+    return {
+        "gallery": [
+            {
+                "id": c.id,
+                "name": c.name,
+                "stage_name": c.stage_name,
+                "category": c.category,
+                "image_url": c.photo_url,
+            }
+            for c in contestants
+        ]
+    }
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
@@ -83,37 +94,9 @@ async def websocket_endpoint(websocket: WebSocket):
     except WebSocketDisconnect:
         manager.disconnect(websocket)
 
-
 @app.get("/api/health")
 async def health():
     return {"status": "ok", "app": "VoteCast", "event": config.settings.EVENT_NAME}
-
-
-@app.get("/api/gallery")
-async def gallery(db: Session = Depends(get_db)):
-    contestants = db.query(models.Contestant).filter(models.Contestant.is_active == True).order_by(models.Contestant.order_index).all()
-    items = []
-    for contestant in contestants:
-        if contestant.photo_url:
-            items.append({
-                "id": contestant.id,
-                "name": contestant.name,
-                "stage_name": contestant.stage_name,
-                "category": contestant.category,
-                "image_url": contestant.photo_url,
-            })
-
-    if not items:
-        items = [{
-            "id": 0,
-            "name": "DA_VELA Fashions",
-            "stage_name": "Runway Gallery",
-            "category": "Fashion Show",
-            "image_url": "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?q=80&w=1200&auto=format&fit=crop",
-        }]
-
-    return {"gallery": items}
-
 
 @app.get("/api/scoreboard")
 async def scoreboard(db: Session = Depends(get_db)):
@@ -154,7 +137,6 @@ async def scoreboard(db: Session = Depends(get_db)):
         "stats": {"total_voters": total_voters, "voted_count": voted_count}
     }
 
-
 def find_frontend_base():
     candidates = [
         os.environ.get("FRONTEND_DIR"),
@@ -167,12 +149,10 @@ def find_frontend_base():
             return os.path.abspath(c)
     return "/app/frontend"
 
-
 frontend_dir = find_frontend_base()
 mimetypes.add_type('text/css', '.css')
 mimetypes.add_type('application/javascript', '.js')
 mimetypes.add_type('text/javascript', '.js')
-
 
 @app.get("/")
 async def root():
@@ -180,7 +160,6 @@ async def root():
     if os.path.exists(voter_index):
         return FileResponse(voter_index, media_type="text/html")
     return {"message": "VoteCast API - DA_VELA Fashions"}
-
 
 @app.get("/voter")
 @app.get("/voter/")
@@ -191,7 +170,6 @@ async def voter_page():
         return FileResponse(voter_index, media_type="text/html")
     raise HTTPException(status_code=404, detail="Not Found")
 
-
 @app.get("/voter/style.css")
 async def voter_css():
     path = os.path.join(frontend_dir, "voter", "style.css")
@@ -199,14 +177,12 @@ async def voter_css():
         return FileResponse(path, media_type="text/css")
     raise HTTPException(status_code=404, detail="Not Found")
 
-
 @app.get("/voter/app.js")
 async def voter_js():
     path = os.path.join(frontend_dir, "voter", "app.js")
     if os.path.exists(path):
         return FileResponse(path, media_type="application/javascript")
     raise HTTPException(status_code=404, detail="Not Found")
-
 
 @app.get("/cms")
 @app.get("/cms/")
@@ -217,7 +193,6 @@ async def cms_page():
         return FileResponse(cms_index, media_type="text/html")
     raise HTTPException(status_code=404, detail="Not Found")
 
-
 @app.get("/cms/style.css")
 async def cms_css():
     path = os.path.join(frontend_dir, "cms", "style.css")
@@ -225,14 +200,12 @@ async def cms_css():
         return FileResponse(path, media_type="text/css")
     raise HTTPException(status_code=404, detail="Not Found")
 
-
 @app.get("/cms/app.js")
 async def cms_js():
     path = os.path.join(frontend_dir, "cms", "app.js")
     if os.path.exists(path):
         return FileResponse(path, media_type="application/javascript")
     raise HTTPException(status_code=404, detail="Not Found")
-
 
 @app.get("/scoreboard")
 @app.get("/scoreboard/")
@@ -244,7 +217,6 @@ async def scoreboard_page():
         return FileResponse(sb_index, media_type="text/html")
     raise HTTPException(status_code=404, detail="Not Found")
 
-
 @app.get("/scoreboard/style.css")
 async def scoreboard_css():
     path = os.path.join(frontend_dir, "scoreboard", "style.css")
@@ -252,14 +224,12 @@ async def scoreboard_css():
         return FileResponse(path, media_type="text/css")
     raise HTTPException(status_code=404, detail="Not Found")
 
-
 @app.get("/scoreboard/app.js")
 async def scoreboard_js():
     path = os.path.join(frontend_dir, "scoreboard", "app.js")
     if os.path.exists(path):
         return FileResponse(path, media_type="application/javascript")
     raise HTTPException(status_code=404, detail="Not Found")
-
 
 @app.get("/health")
 async def health_simple():

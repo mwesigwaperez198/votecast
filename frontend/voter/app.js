@@ -31,13 +31,21 @@ async function loadGallery() {
     if (!gallery) return;
     try {
         const res = await fetch(`${API_BASE}/api/gallery`, { cache: 'no-store' });
-        if (!res.ok) return;
         const data = await res.json();
         const items = data.gallery || [];
+
+        if (!items.length) {
+            gallery.innerHTML = '';
+            return;
+        }
+
         gallery.innerHTML = items.map((item) => `
             <article class="gallery-item">
                 <img src="${item.image_url || 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?q=80&w=1200&auto=format&fit=crop'}" alt="${item.name || 'Gallery image'}" onerror="this.src='https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?q=80&w=1200&auto=format&fit=crop'">
-                <span>${item.name || 'DA_VELA Fashions'}</span>
+                <div class="gallery-meta">
+                    <strong>${item.name || 'DA_VELA Model'}</strong>
+                    <span>${item.stage_name || item.category || 'Fashion Model'}</span>
+                </div>
             </article>
         `).join('');
     } catch (e) {

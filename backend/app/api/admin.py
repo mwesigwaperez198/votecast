@@ -11,7 +11,6 @@ import json
 
 router = APIRouter()
 
-
 def verify_admin(request: Request, db: Session = Depends(get_db)):
     token = request.headers.get("Authorization")
     if not token:
@@ -21,8 +20,9 @@ def verify_admin(request: Request, db: Session = Depends(get_db)):
     payload = security.decode_token(token)
     if not payload:
         raise HTTPException(status_code=401, detail="Invalid token")
+    if payload.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Forbidden: admin access required")
     return payload
-
 
 @router.post("/login")
 async def admin_login(login_data: schemas.AdminLogin, db: Session = Depends(get_db)):
@@ -32,14 +32,13 @@ async def admin_login(login_data: schemas.AdminLogin, db: Session = Depends(get_
     token = security.create_access_token(data={"sub": admin.username, "role": admin.role})
     return {"access_token": token, "token_type": "bearer", "role": admin.role}
 
-
 @router.post("/contestants")
 async def create_contestant(contestant: schemas.ContestantCreate, request: Request, db: Session = Depends(get_db), admin=Depends(verify_admin)):
     db_contestant = models.Contestant(**contestant.dict())
     db.add(db_contestant)
     db.commit()
     db.refresh(db_contestant)
-
+    
     log_entry = models.LogEntry(
         log_type="admin_action",
         message=f"Contestant added: {contestant.name}",
@@ -49,11 +48,9 @@ async def create_contestant(contestant: schemas.ContestantCreate, request: Reque
     db.commit()
     return db_contestant
 
-
 @router.get("/contestants")
 async def list_contestants(db: Session = Depends(get_db), admin=Depends(verify_admin)):
     return db.query(models.Contestant).order_by(models.Contestant.order_index).all()
-
 
 @router.put("/contestants/{contestant_id}")
 async def update_contestant(contestant_id: int, contestant: schemas.ContestantCreate, request: Request, db: Session = Depends(get_db), admin=Depends(verify_admin)):
@@ -66,7 +63,6 @@ async def update_contestant(contestant_id: int, contestant: schemas.ContestantCr
     db.refresh(db_contestant)
     return db_contestant
 
-
 @router.delete("/contestants/{contestant_id}")
 async def delete_contestant(contestant_id: int, request: Request, db: Session = Depends(get_db), admin=Depends(verify_admin)):
     db_contestant = db.query(models.Contestant).filter(models.Contestant.id == contestant_id).first()
@@ -76,44 +72,39 @@ async def delete_contestant(contestant_id: int, request: Request, db: Session = 
     db.commit()
     return {"message": "Deleted"}
 
-
 @router.post("/vote")
 async def admin_cast_vote(vote_req: schemas.AdminVoteRequest, request: Request, db: Session = Depends(get_db), admin=Depends(verify_admin)):
-    if admin.get("role") != "admin":
-        raise HTTPException(status_code=403, detail="Only admins can award admin votes")
-
     contestant = db.query(models.Contestant).filter(models.Contestant.id == vote_req.contestant_id).first()
     if not contestant or not contestant.is_active:
         raise HTTPException(status_code=404, detail="Contestant not found")
-
-    vote_strength = config.settings.VOTE_POINTS_ADMIN
+    
     vote_hash = helpers.generate_vote_hash(0, contestant.id, "admin", datetime.utcnow().isoformat())
     ledger_entry = models.VoteLedger(
         voter_id=None,
         contestant_id=contestant.id,
         voter_type="admin",
-        points=vote_strength,
+        points=config.settings.VOTE_POINTS_ADMIN,
         ip_address=request.client.host if request.client else None,
         user_agent=request.headers.get("user-agent"),
         vote_hash=vote_hash
     )
     db.add(ledger_entry)
-
-    contestant.admin_votes_count += vote_strength
-    contestant.points_total += vote_strength
-
+    
+    contestant.votes_count += 1
+    contestant.admin_votes_count += 1
+    contestant.points_total += config.settings.VOTE_POINTS_ADMIN
+    
     db.commit()
-
+    
     log_entry = models.LogEntry(
         log_type="vote",
-        message=f"Admin vote cast ({vote_strength} pts) for {contestant.name}",
-        data=json.dumps({"contestant_id": contestant.id, "points": vote_strength, "voter_type": "admin"})
+        message=f"Admin vote cast ({config.settings.VOTE_POINTS_ADMIN} pts) for {contestant.name}",
+        data=json.dumps({"contestant_id": contestant.id, "points": 3, "voter_type": "admin", "vote_count": contestant.votes_count})
     )
     db.add(log_entry)
     db.commit()
-
-    return {"message": f"Admin vote cast (+{vote_strength} pts)", "contestant": contestant.name, "points": vote_strength}
-
+    
+    return {"message": f"Admin vote cast (+{config.settings.VOTE_POINTS_ADMIN} pts)", "contestant": contestant.name, "points": 3, "votes": contestant.votes_count}
 
 @router.post("/event/control")
 async def control_event(control: schemas.EventControl, request: Request, db: Session = Depends(get_db), admin=Depends(verify_admin)):
@@ -121,9 +112,9 @@ async def control_event(control: schemas.EventControl, request: Request, db: Ses
     if not state:
         state = models.EventState()
         db.add(state)
-
+    
     action = control.action
-
+    
     if action == "start":
         state.status = "starting"
         state.countdown_active = True
@@ -160,11 +151,10 @@ async def control_event(control: schemas.EventControl, request: Request, db: Ses
         state.winner_id = None
         db.query(models.Contestant).update({models.Contestant.votes_count: 0, models.Contestant.admin_votes_count: 0, models.Contestant.points_total: 0})
         db.query(models.Voter).update({models.Voter.has_voted: False, models.Voter.voted_at: None})
-
+    
     db.commit()
     db.refresh(state)
     return {"message": f"Action {action} executed", "status": state.status}
-
 
 @router.get("/stats")
 async def get_stats(db: Session = Depends(get_db), admin=Depends(verify_admin)):
@@ -173,7 +163,7 @@ async def get_stats(db: Session = Depends(get_db), admin=Depends(verify_admin)):
     total_votes = db.query(func.count(models.VoteLedger.id)).scalar()
     contestants = db.query(models.Contestant).filter(models.Contestant.is_active == True).all()
     state = db.query(models.EventState).first()
-
+    
     return {
         "total_voters": total_voters,
         "voted_count": voted_count,
@@ -181,7 +171,6 @@ async def get_stats(db: Session = Depends(get_db), admin=Depends(verify_admin)):
         "contestants": [{"id": c.id, "name": c.name, "votes_count": c.votes_count, "admin_votes_count": c.admin_votes_count, "points_total": c.points_total, "photo_url": c.photo_url} for c in contestants],
         "state": {"status": state.status if state else "idle", "winner_declared": state.winner_declared if state else False, "winner_id": state.winner_id if state else None}
     }
-
 
 @router.get("/logs")
 async def get_logs(limit: int = 100, db: Session = Depends(get_db), admin=Depends(verify_admin)):
@@ -196,7 +185,6 @@ async def get_logs(limit: int = 100, db: Session = Depends(get_db), admin=Depend
             "created_at": log.created_at.isoformat() if log.created_at else None
         })
     return result
-
 
 @router.get("/voters")
 async def get_voters(db: Session = Depends(get_db), admin=Depends(verify_admin)):
@@ -213,7 +201,6 @@ async def get_voters(db: Session = Depends(get_db), admin=Depends(verify_admin))
             "ip_address": v.ip_address
         })
     return result
-
 
 @router.get("/qr")
 async def generate_qr(request: Request):
