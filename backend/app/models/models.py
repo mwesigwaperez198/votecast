@@ -77,3 +77,15 @@ class LogEntry(Base):
     message = Column(Text)
     data = Column(Text)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+class GalleryImage(Base):
+    __tablename__ = "gallery_images"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String)
+    image_url = Column(Text)
+    category = Column(String, default="gallery")
+    order_index = Column(Integer, default=0)
+    is_active = Column(Boolean, default=True)
+    uploaded_by = Column(String)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())

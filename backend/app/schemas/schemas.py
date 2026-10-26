@@ -55,3 +55,21 @@ class EventControl(BaseModel):
 
 class WinnerDeclare(BaseModel):
     winner_id: int
+
+class GalleryImageBase(BaseModel):
+    title: Optional[str] = None
+    image_url: str
+    category: Optional[str] = "gallery"
+    order_index: Optional[int] = 0
+    is_active: Optional[bool] = True
+
+class GalleryImageCreate(GalleryImageBase):
+    pass
+
+class GalleryImageResponse(GalleryImageBase):
+    id: int
+    uploaded_by: Optional[str] = None
+    created_at: Optional[datetime] = None
+    
+    class Config:
+        from_attributes = True

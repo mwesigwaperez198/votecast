@@ -220,3 +220,36 @@ async def generate_qr(request: Request):
     buf.seek(0)
     img_str = base64.b64encode(buf.getvalue()).decode()
     return {"qr_code": f"data:image/png;base64,{img_str}", "url": voter_url}
+
+@router.post("/countdown/decrement")
+async def decrement_countdown(request: Request, db: Session = Depends(get_db), admin=Depends(verify_admin)):
+    """Decrement the countdown value. When it reaches 0, auto-transition to voting."""
+    state = db.query(models.EventState).first()
+    if not state:
+        return {"status": "no_state", "message": "No event state found"}
+    
+    if state.countdown_active and state.countdown_value > 0:
+        state.countdown_value -= 1
+        db.commit()
+        db.refresh(state)
+    
+    # If countdown reaches 0 and active, auto-transition
+    if state.countdown_active and state.countdown_value == 0:
+        if state.status == "starting":
+            state.status = "voting"
+            state.countdown_active = False
+            state.countdown_value = 0
+            db.commit()
+        elif state.status == "runway_ended":
+            state.status = "ended"
+            state.countdown_active = False
+            state.countdown_value = 0
+            state.ended_at = datetime.utcnow()
+            db.commit()
+    
+    return {
+        "status": state.status,
+        "countdown_active": state.countdown_active,
+        "countdown_value": state.countdown_value,
+        "message": f"Countdown at {state.countdown_value}s"
+    }

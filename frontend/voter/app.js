@@ -8,9 +8,11 @@ const ballotGrid = document.getElementById('ballot-grid');
 const voterChip = document.getElementById('voter-chip');
 const doneState = document.getElementById('done-state');
 const closedText = document.getElementById('closed-text');
+const countdownDisplay = document.getElementById('countdown-display');
 
 let sessionToken = localStorage.getItem('votecast_token');
 let voterInfo = JSON.parse(localStorage.getItem('votecast_voter') || 'null');
+let countdownInterval = null;
 
 async function fetchState() {
     try {
@@ -126,14 +128,25 @@ async function route() {
         return;
     }
     if (state.status === 'starting') {
+        if (countdownDisplay) {
+            countdownDisplay.textContent = `Countdown: ${state.countdown_value}s`;
+            countdownDisplay.style.display = 'block';
+        }
         closedText.textContent = 'Session starting — please hold';
         show(closedSection);
         return;
     }
     if (state.status === 'runway_ended') {
+        if (countdownDisplay) {
+            countdownDisplay.textContent = `Countdown: ${state.countdown_value}s`;
+            countdownDisplay.style.display = 'block';
+        }
         closedText.textContent = 'Runway has ended — thank you for your participation';
         show(closedSection);
         return;
+    }
+    if (countdownDisplay) {
+        countdownDisplay.style.display = 'none';
     }
     closedText.textContent = 'The runway session will begin shortly';
     show(closedSection);
