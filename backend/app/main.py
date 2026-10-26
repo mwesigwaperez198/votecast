@@ -1,7 +1,8 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
-from app.core.database import engine, Base, SessionLocal
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse, Response
+from app.core.database import engine, Base, SessionLocal, get_db
 from app.core import config, security
 from app.models import models
 from app.api import vote, admin
