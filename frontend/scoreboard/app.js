@@ -1,96 +1,72 @@
 const API_BASE = window.location.origin;
+const board = document.getElementById('board');
+const sbState = document.getElementById('sb-state');
+const cd = document.getElementById('cd');
+const cdNum = document.getElementById('cd-num');
+const cdLab = document.getElementById('cd-lab');
+const win = document.getElementById('win');
+const winPhoto = document.getElementById('win-photo');
+const winName = document.getElementById('win-name');
+const winStage = document.getElementById('win-stage');
+const winPts = document.getElementById('win-pts');
+const winVoters = document.getElementById('win-voters');
+const winPct = document.getElementById('win-pct');
 
-const leaderboard = document.getElementById('leaderboard');
-const sbStatus = document.getElementById('sb-status');
-const countdownOverlay = document.getElementById('countdown-overlay');
-const countdownNumber = document.getElementById('countdown-number');
-const countdownLabel = document.getElementById('countdown-label');
-const winnerOverlay = document.getElementById('winner-overlay');
-const winnerPhoto = document.getElementById('winner-photo');
-const winnerName = document.getElementById('winner-name');
-const winnerStage = document.getElementById('winner-stage');
-const winnerPoints = document.getElementById('winner-points');
-const winnerTotalVoters = document.getElementById('winner-total-voters');
-const winnerPct = document.getElementById('winner-pct');
+let last = '';
 
-let lastStatus = '';
-let countdownInterval = null;
-let currentCountdown = 0;
-
-async function fetchData() {
+async function load() {
     try {
-        const res = await fetch(`${API_BASE}/api/scoreboard`);
+        const res = await fetch(`${API_BASE}/api/scoreboard`, { cache: 'no-store' });
         const data = await res.json();
-        
-        // Status
-        const status = data.state.status;
-        if (status !== lastStatus) {
-            lastStatus = status;
-            if (status === 'voting') sbStatus.textContent = 'VOTING OPEN';
-            else if (status === 'starting') sbStatus.textContent = 'STARTING';
-            else if (status === 'runway_ended') sbStatus.textContent = 'RUNWAY ENDED';
-            else if (status === 'ended') sbStatus.textContent = 'ENDED';
-            else sbStatus.textContent = 'WAITING';
+        const st = data.state.status;
+        if (st !== last) {
+            last = st;
+            if (st === 'voting') sbState.textContent = 'VOTING OPEN';
+            else if (st === 'starting') sbState.textContent = 'STARTING';
+            else if (st === 'runway_ended') sbState.textContent = 'RUNWAY ENDED';
+            else if (st === 'ended') sbState.textContent = 'CONCLUDED';
+            else sbState.textContent = 'AWAITING';
         }
-        
-        // Countdown
+
         if (data.state.countdown_active && data.state.countdown_value > 0) {
-            if (!countdownOverlay.classList.contains('active') || currentCountdown !== data.state.countdown_value) {
-                currentCountdown = data.state.countdown_value;
-                countdownOverlay.classList.add('active');
-                if (status === 'starting') {
-                    countdownLabel.textContent = 'SESSION STARTING';
-                } else if (status === 'runway_ended') {
-                    countdownLabel.textContent = 'DECLARING WINNER';
-                } else {
-                    countdownLabel.textContent = 'GET READY';
-                }
-                countdownNumber.textContent = data.state.countdown_value;
-            }
+            cd.classList.add('active');
+            cdNum.textContent = data.state.countdown_value;
+            cdLab.textContent = st === 'runway_ended' ? 'DECLARING WINNER' : 'SESSION STARTING';
         } else {
-            countdownOverlay.classList.remove('active');
+            cd.classList.remove('active');
         }
-        
-        // Winner
+
         if (data.state.winner_declared && data.winner) {
-            if (!winnerOverlay.classList.contains('active')) {
-                winnerOverlay.classList.add('active');
-                winnerPhoto.src = data.winner.photo_url || 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop';
-                winnerName.textContent = data.winner.name;
-                winnerStage.textContent = data.winner.stage_name || '';
-                winnerPoints.textContent = data.winner.points_total;
-                winnerTotalVoters.textContent = data.stats.total_voters;
-                const pct = data.stats.total_voters > 0 ? Math.round((data.winner.points_total / (data.stats.total_voters * 3)) * 100) : 0;
-                winnerPct.textContent = pct + '%';
-            }
+            win.classList.add('active');
+            winPhoto.src = data.winner.photo_url || 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?q=80&w=800&auto=format&fit=crop';
+            winName.textContent = data.winner.name;
+            winStage.textContent = data.winner.stage_name || '';
+            winPts.textContent = Math.round(data.winner.points_total);
+            winVoters.textContent = data.stats.total_voters;
+            const p = data.stats.total_voters > 0 ? Math.round((data.winner.points_total / (data.stats.total_voters * 3)) * 100) : 0;
+            winPct.textContent = p + '%';
         } else {
-            winnerOverlay.classList.remove('active');
+            win.classList.remove('active');
         }
-        
-        // Leaderboard
-        leaderboard.innerHTML = '';
+
+        board.innerHTML = '';
         data.contestants.forEach((c, idx) => {
-            const item = document.createElement('div');
-            item.className = `lb-item ${idx === 0 && data.contestants.length > 0 ? 'first' : ''}`;
-            item.innerHTML = `
+            const row = document.createElement('article');
+            row.className = `lb ${idx === 0 && data.contestants.length ? 'first' : ''}`;
+            row.innerHTML = `
                 <div class="lb-rank">${idx + 1}</div>
-                <img src="${c.photo_url || 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop'}" alt="${c.name}" class="lb-photo" onerror="this.src='https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop'">
+                <img class="lb-photo" src="${c.photo_url || 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?q=80&w=400&auto=format&fit=crop'}" onerror="this.src='https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?q=80&w=400&auto=format&fit=crop'">
                 <div class="lb-info">
                     <div class="lb-name">${c.name}</div>
-                    <div class="lb-stage">${c.stage_name || c.category || ''} • Audience ${c.votes_count} • Admin ${c.admin_votes_count}</div>
+                    <div class="lb-meta">${c.stage_name || c.category || 'Fashion Model'} • Audience ${c.votes_count} • Judges ${c.admin_votes_count}</div>
                 </div>
-                <div class="lb-votes">
-                    <div class="lb-votes-count">${c.percentage}% Analysis</div>
-                </div>
-                <div class="lb-points">${Math.round(c.points_total)}</div>
+                <div class="lb-an">${c.percentage}% Analysis</div>
+                <div class="lb-pts">${Math.round(c.points_total)}</div>
             `;
-            leaderboard.appendChild(item);
+            board.appendChild(row);
         });
-        
-    } catch (e) {
-        console.error(e);
-    }
+    } catch (e) {}
 }
 
-fetchData();
-setInterval(fetchData, 2000);
+load();
+setInterval(load, 2000);

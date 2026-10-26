@@ -6,58 +6,65 @@
     <title>DA_VELA Fashions | Live Scoreboard</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:wght@600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600;700;800;900&family=Cormorant:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="scoreboard">
-        <header class="sb-header">
+    <div class="noise"></div>
+    <div class="vignette"></div>
+
+    <div class="sb">
+        <header class="sb-head">
             <div class="sb-brand">
-                <div class="sb-mark">DV</div>
+                <span class="sb-mark">DV</span>
                 <div class="sb-brand-text">
-                    <div class="sb-title">DA_VELA</div>
-                    <div class="sb-sub">FASHIONS</div>
+                    <span class="sb-name">DA_VELA</span>
+                    <span class="sb-sub">FASHIONS</span>
                 </div>
             </div>
-            <div class="sb-event">LIVE SCOREBOARD</div>
-            <div class="sb-status" id="sb-status">WAITING</div>
+            <div class="sb-live">
+                <span class="sb-pulse"></span>
+                <span>LIVE SCOREBOARD</span>
+            </div>
+            <div class="sb-state" id="sb-state">AWAITING</div>
         </header>
 
         <main class="sb-main">
-            <div id="countdown-overlay" class="countdown-overlay">
-                <div class="countdown-number" id="countdown-number">10</div>
-                <div class="countdown-label" id="countdown-label">GET READY</div>
+            <div id="cd" class="cd">
+                <div class="cd-ring"></div>
+                <div class="cd-num" id="cd-num">10</div>
+                <div class="cd-lab" id="cd-lab">GET READY</div>
             </div>
 
-            <div id="winner-overlay" class="winner-overlay">
-                <div class="winner-bg"></div>
-                <div class="winner-content">
-                    <div class="winner-label">WINNER</div>
-                    <img id="winner-photo" src="" alt="" class="winner-photo">
-                    <div class="winner-name" id="winner-name"></div>
-                    <div class="winner-stage" id="winner-stage"></div>
-                    <div class="winner-stats">
-                        <div class="winner-stat">
-                            <div class="winner-stat-value" id="winner-points"></div>
-                            <div class="winner-stat-label">POINTS</div>
+            <div id="win" class="win">
+                <div class="win-bg"></div>
+                <div class="win-inner">
+                    <div class="win-kicker">WINNER</div>
+                    <img id="win-photo" class="win-photo" src="" alt="">
+                    <h2 class="win-name" id="win-name"></h2>
+                    <div class="win-stage" id="win-stage"></div>
+                    <div class="win-grid">
+                        <div class="win-card">
+                            <span class="win-val" id="win-pts">0</span>
+                            <span class="win-lab">POINTS</span>
                         </div>
-                        <div class="winner-stat">
-                            <div class="winner-stat-value" id="winner-total-voters"></div>
-                            <div class="winner-stat-label">TOTAL VOTERS</div>
+                        <div class="win-card">
+                            <span class="win-val" id="win-voters">0</span>
+                            <span class="win-lab">TOTAL VOTERS</span>
                         </div>
-                        <div class="winner-stat">
-                            <div class="winner-stat-value" id="winner-pct"></div>
-                            <div class="winner-stat-label">ANALYSIS</div>
+                        <div class="win-card">
+                            <span class="win-val" id="win-pct">0%</span>
+                            <span class="win-lab">ANALYSIS</span>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div id="leaderboard" class="leaderboard"></div>
+            <div class="board" id="board"></div>
         </main>
 
-        <footer class="sb-footer">
-            <div class="sb-footer-text">POWERED BY NOVARA TECHNOLOGIES LIMITED</div>
+        <footer class="sb-foot">
+            <span>POWERED BY NOVARA TECHNOLOGIES LIMITED</span>
         </footer>
     </div>
 
