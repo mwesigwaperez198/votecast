@@ -31,10 +31,11 @@ function show(view) {
 
 function showWelcomeOverlay() {
     const overlay = document.createElement('div');
-    overlay.style.cssText = 'position:fixed;inset:0;background:radial-gradient(circle at top,#0f7c3e,#000);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px;text-align:center';
-    overlay.innerHTML = '<div style="max-width:900px;animation:fadeInUp 1.4s ease"><div style="letter-spacing:10px;text-transform:uppercase;opacity:0.8;margin-bottom:14px">DA-VELA-HOUSE OF ARTS PRESENTS</div><div style="font-family:Cormorant,serif;font-size:clamp(24px,6vw,60px);text-transform:uppercase;line-height:1.08">THE ONE BIG CULTURAL SHOW CASING THIS YEAR 2026</div><div style="margin-top:16px;letter-spacing:8px;text-transform:uppercase">BE READY TO ENTERTAIN NATURAL BEAUTY</div></div><style>@keyframes fadeInUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}</style>';
+    overlay.className = 'welcome-overlay';
+    overlay.style.cssText = 'position:fixed;inset:0;background:radial-gradient(circle at top,#0f7c3e,#000);display:flex;align-items:center;justify-content:center;z-index:99999;padding:20px;text-align:center';
+    overlay.innerHTML = '<div style="max-width:920px;animation:fadeInUp 1.6s ease"><div style="letter-spacing:12px;text-transform:uppercase;opacity:0.9;margin-bottom:16px">DA-VELA-HOUSE OF ARTS PRESENTS</div><div style="font-family:Cormorant,serif;font-size:clamp(26px,7vw,66px);text-transform:uppercase;line-height:1.06">THE ONE BIG CULTURAL SHOW CASING THIS YEAR 2026</div><div style="margin-top:18px;letter-spacing:10px;text-transform:uppercase">BE READY TO ENTERTAIN NATURAL BEAUTY</div></div><style>@keyframes fadeInUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}</style>';
     document.body.appendChild(overlay);
-    setTimeout(() => overlay.remove(), 3800);
+    setTimeout(() => { if (overlay.parentNode) overlay.remove(); }, 4200);
 }
 
 async function loadGallery() {
@@ -169,8 +170,8 @@ async function route() {
     }
     if (state.status === 'starting') {
         if (!welcomeShown) {
-            try { showWelcomeOverlay(); } catch(e){}
-            welcomeShown = true;
+            if (document.querySelector('.welcome-overlay')) welcomeShown = true;
+            else { try { showWelcomeOverlay(); } catch(e){} welcomeShown = true; }
         }
         if (countdownDisplay) {
             countdownDisplay.textContent = `Countdown: ${state.countdown_value}s`;

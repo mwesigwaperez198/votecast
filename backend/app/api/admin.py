@@ -275,7 +275,7 @@ async def decrement_countdown(request: Request, db: Session = Depends(get_db), a
         db.refresh(state)
     
     # If countdown reaches 0 and active, auto-transition
-    if state.countdown_active and state.countdown_value == 0:
+    if state.countdown_active and state.countdown_value <= 0:
         if state.status == "starting":
             state.status = "voting"
             state.countdown_active = False

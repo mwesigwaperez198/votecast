@@ -13,6 +13,7 @@ const winVoters = document.getElementById('win-voters');
 const winPct = document.getElementById('win-pct');
 
 let last = '';
+let lastCount = -1;
 
 async function load() {
     try {
@@ -28,12 +29,19 @@ async function load() {
             else sbState.textContent = 'AWAITING';
         }
 
-        if (data.state.countdown_active && data.state.countdown_value >= 0) {
+        if (data.state.countdown_active) {
             cd.classList.add('active');
+            if (data.state.countdown_value !== lastCount) {
+                lastCount = data.state.countdown_value;
+                cdNum.style.animation = 'none';
+                void cdNum.offsetWidth;
+                cdNum.style.animation = 'cdPulse 0.6s ease';
+            }
             cdNum.textContent = data.state.countdown_value;
-            cdLab.textContent = st === 'runway_ended' ? 'DECLARING WINNER' : 'SESSION STARTING';
+            cdLab.textContent = st === 'runway_ended' ? 'DECLARING WINNER' : (st === 'starting' ? 'GET READY' : 'STARTING');
         } else {
             cd.classList.remove('active');
+            lastCount = -1;
         }
 
         if (data.state.winner_declared && data.winner) {
