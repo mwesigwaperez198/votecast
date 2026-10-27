@@ -32,9 +32,9 @@ function show(view) {
 function showWelcomeOverlay() {
     const overlay = document.createElement('div');
     overlay.style.cssText = 'position:fixed;inset:0;background:radial-gradient(circle at top,#0f7c3e,#000);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px;text-align:center';
-    overlay.innerHTML = '<div style="max-width:900px;animation:fadeInUp 1.2s ease"><div style="letter-spacing:12px;text-transform:uppercase;opacity:0.7;margin-bottom:12px">DA-VELA-HOUSE OF ARTS PRESENTS</div><div style="font-family:Cormorant,serif;font-size:clamp(28px,6vw,64px);text-transform:uppercase;line-height:1.1">THE ONE BIG CULTURAL SHOW CASING THIS YEAR 2026</div><div style="margin-top:18px;letter-spacing:10px;text-transform:uppercase">BE READY TO ENTERTAIN NATURAL BEAUTY</div></div><style>@keyframes fadeInUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}</style>';
+    overlay.innerHTML = '<div style="max-width:900px;animation:fadeInUp 1.4s ease"><div style="letter-spacing:10px;text-transform:uppercase;opacity:0.8;margin-bottom:14px">DA-VELA-HOUSE OF ARTS PRESENTS</div><div style="font-family:Cormorant,serif;font-size:clamp(24px,6vw,60px);text-transform:uppercase;line-height:1.08">THE ONE BIG CULTURAL SHOW CASING THIS YEAR 2026</div><div style="margin-top:16px;letter-spacing:8px;text-transform:uppercase">BE READY TO ENTERTAIN NATURAL BEAUTY</div></div><style>@keyframes fadeInUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}</style>';
     document.body.appendChild(overlay);
-    setTimeout(() => overlay.remove(), 3200);
+    setTimeout(() => overlay.remove(), 3800);
 }
 
 async function loadGallery() {
@@ -169,7 +169,7 @@ async function route() {
     }
     if (state.status === 'starting') {
         if (!welcomeShown) {
-            showWelcomeOverlay();
+            try { showWelcomeOverlay(); } catch(e){}
             welcomeShown = true;
         }
         if (countdownDisplay) {

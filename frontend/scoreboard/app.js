@@ -63,7 +63,7 @@ async function load() {
                 <img class="lb-photo" src="${firstImg}" data-gallery='${JSON.stringify(gallery).replace(/'/g, "&apos;")}' onclick="showModelGallery(this)" onerror="this.src='https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?q=80&w=400&auto=format&fit=crop'">
                 <div class="lb-info">
                     <div class="lb-name">${c.name}</div>
-                    <div class="lb-meta">${c.stage_name || c.category || 'Fashion Model'} • Audience ${c.votes_count + (c.admin_votes_count || 0)*3} • Judges ${c.admin_votes_count} (${c.admin_votes_count} actions)</div>
+                    <div class="lb-meta">${c.stage_name || c.category || 'Fashion Model'} • Audience ${Math.round(c.points_total)}</div>
                 </div>
                 <div class="lb-an">${c.percentage}% Analysis</div>
                 <div class="lb-pts">${Math.round(c.points_total)}</div>

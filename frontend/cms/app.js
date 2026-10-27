@@ -11,11 +11,10 @@ const pageTitle = document.getElementById('page-title');
 
 const titles = {
     dashboard: 'Dashboard',
-    contestants: 'Contestants',
-    voting: 'Voting Control',
-    logs: 'Logs & Registrations',
-    qr: 'QR Generator',
-    settings: 'Settings'
+    contestants: 'Models',
+    voting: 'Session Control',
+    qr: 'QR Access',
+    settings: 'Logs'
 };
 
 navItems.forEach(item => {
@@ -26,7 +25,7 @@ navItems.forEach(item => {
         tabSections.forEach(s => s.classList.remove('active'));
         document.getElementById(`tab-${tab}`).classList.add('active');
         pageTitle.textContent = titles[tab];
-        if (tab === 'logs') loadLogs();
+        if (tab === 'settings') loadLogs();
         if (tab === 'qr') loadQR();
         if (tab === 'voting') loadAdminVoteList();
     });
@@ -106,6 +105,15 @@ const contestantForm = document.getElementById('contestant-form');
 const deleteBtn = document.getElementById('delete-contestant-btn');
 let currentContestantId = null;
 
+function fileToDataURL(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+}
+
 addBtn.addEventListener('click', () => {
     document.getElementById('modal-title').textContent = 'Add Model';
     document.getElementById('contestant-id').value = '';
@@ -114,7 +122,8 @@ addBtn.addEventListener('click', () => {
     document.getElementById('c-stage').value = '';
     document.getElementById('c-category').value = '';
     document.getElementById('c-bio').value = '';
-    document.getElementById('c-photo').value = '';
+    const p = document.getElementById('c-photo'); if (p) p.value = '';
+    const gf = document.getElementById('c-gallery-file'); if (gf) gf.value = '';
     document.getElementById('c-gallery').value = '';
     document.getElementById('c-order').value = '0';
     if (deleteBtn) deleteBtn.style.display = 'none';
@@ -134,16 +143,29 @@ contestantForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const id = document.getElementById('contestant-id').value || currentContestantId;
     const galleryImgs = parseGallery(document.getElementById('c-gallery').value);
-    const data = {
-        name: document.getElementById('c-name').value,
-        stage_name: document.getElementById('c-stage').value,
-        category: document.getElementById('c-category').value,
-        bio: document.getElementById('c-bio').value,
-        photo_url: document.getElementById('c-photo').value,
-        gallery_images: galleryImgs,
-        order_index: parseInt(document.getElementById('c-order').value) || 0
-    };
     try {
+        const photoInput = document.getElementById('c-photo');
+        if (photoInput && photoInput.files && photoInput.files[0]) {
+            galleryImgs.unshift(await fileToDataURL(photoInput.files[0]));
+        } else {
+            const pv = document.getElementById('c-photo').value;
+            if (pv && pv.trim()) galleryImgs.unshift(pv.trim());
+        }
+        const gfile = document.getElementById('c-gallery-file');
+        if (gfile && gfile.files) {
+            for (let i = 0; i < gfile.files.length; i++) {
+                galleryImgs.push(await fileToDataURL(gfile.files[i]));
+            }
+        }
+        const data = {
+            name: document.getElementById('c-name').value,
+            stage_name: document.getElementById('c-stage').value,
+            category: document.getElementById('c-category').value,
+            bio: document.getElementById('c-bio').value,
+            photo_url: galleryImgs[0] || '',
+            gallery_images: galleryImgs,
+            order_index: parseInt(document.getElementById('c-order').value) || 0
+        };
         if (id) {
             await fetch(`${API_BASE}/api/admin/contestants/${id}`, {method: 'PUT', headers: authHeaders(), body: JSON.stringify(data)});
         } else {
@@ -192,7 +214,8 @@ window.editContestant = (c) => {
     document.getElementById('c-stage').value = c.stage_name || '';
     document.getElementById('c-category').value = c.category || '';
     document.getElementById('c-bio').value = c.bio || '';
-    document.getElementById('c-photo').value = c.photo_url || '';
+    const p = document.getElementById('c-photo'); if (p) p.value = '';
+    const gf = document.getElementById('c-gallery-file'); if (gf) gf.value = '';
     let gallery = c.gallery_images || [];
     if (!gallery.length && c.gallery) {
         gallery = c.gallery.map(g => g.image_url || g);
@@ -289,8 +312,20 @@ async function loadQR() {
 document.getElementById('refresh-qr').addEventListener('click', loadQR);
 const dlBtn = document.getElementById('download-qr');
 if (dlBtn) {
-    dlBtn.addEventListener('click', () => {
-        if (!qrDataUrl) return;
+    dlBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (!qrDataUrl) {
+            loadQR().then(() => {
+                if (!qrDataUrl) return alert('QR not ready');
+                const link = document.createElement('a');
+                link.href = qrDataUrl;
+                link.download = 'DA_VELA_Voter_QR.png';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            });
+            return;
+        }
         const link = document.createElement('a');
         link.href = qrDataUrl;
         link.download = 'DA_VELA_Voter_QR.png';

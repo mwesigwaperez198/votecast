@@ -635,6 +635,8 @@ td.right { text-align: right; }
 
 .modal-form {
     padding: 26px 28px;
+    max-height: 70vh;
+    overflow-y: auto;
 }
 
 @media (max-width: 1080px) {
