@@ -29,6 +29,14 @@ function show(view) {
     view.classList.add('active');
 }
 
+function showWelcomeOverlay() {
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;background:radial-gradient(circle at top,#0f7c3e,#000);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px;text-align:center';
+    overlay.innerHTML = '<div style="max-width:900px;animation:fadeInUp 1.2s ease"><div style="letter-spacing:12px;text-transform:uppercase;opacity:0.7;margin-bottom:12px">DA-VELA-HOUSE OF ARTS PRESENTS</div><div style="font-family:Cormorant,serif;font-size:clamp(28px,6vw,64px);text-transform:uppercase;line-height:1.1">THE ONE BIG CULTURAL SHOW CASING THIS YEAR 2026</div><div style="margin-top:18px;letter-spacing:10px;text-transform:uppercase">BE READY TO ENTERTAIN NATURAL BEAUTY</div></div><style>@keyframes fadeInUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}</style>';
+    document.body.appendChild(overlay);
+    setTimeout(() => overlay.remove(), 3200);
+}
+
 async function loadGallery() {
     if (!gallery) return;
     try {
@@ -41,7 +49,7 @@ async function loadGallery() {
             return;
         }
 
-        gallery.innerHTML = items.map((item) => `
+        gallery.innerHTML = '<div style="grid-column:1/-1;text-align:center;opacity:0.8;margin:4px 0">See more</div>' + items.slice(0, 12).map((item) => `
             <article class="gallery-item">
                 <img src="${item.image_url || 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?q=80&w=1200&auto=format&fit=crop'}" alt="${item.name || 'Gallery image'}" onerror="this.src='https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?q=80&w=1200&auto=format&fit=crop'">
                 <div class="gallery-meta">
@@ -142,9 +150,13 @@ async function castVote(contestantId) {
     }
 }
 
+let welcomeShown = false;
 async function route() {
     const state = await fetchState();
     if (state.status === 'voting') {
+        if (countdownDisplay) {
+            countdownDisplay.style.display = 'none';
+        }
         if (sessionToken && voterInfo) {
             if (voterChip) voterChip.textContent = voterInfo.name.toUpperCase();
             show(voteSection);
@@ -156,6 +168,10 @@ async function route() {
         return;
     }
     if (state.status === 'starting') {
+        if (!welcomeShown) {
+            showWelcomeOverlay();
+            welcomeShown = true;
+        }
         if (countdownDisplay) {
             countdownDisplay.textContent = `Countdown: ${state.countdown_value}s`;
             countdownDisplay.style.display = 'block';
@@ -176,9 +192,10 @@ async function route() {
     if (countdownDisplay) {
         countdownDisplay.style.display = 'none';
     }
+    welcomeShown = false;
     closedText.textContent = 'The runway session will begin shortly';
     show(closedSection);
 }
 
 route();
-setInterval(route, 4000);
+setInterval(route, 2000);

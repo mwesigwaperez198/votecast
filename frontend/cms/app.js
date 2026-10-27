@@ -103,31 +103,44 @@ const modal = document.getElementById('contestant-modal');
 const addBtn = document.getElementById('add-contestant-btn');
 const modalClose = document.getElementById('modal-close');
 const contestantForm = document.getElementById('contestant-form');
+const deleteBtn = document.getElementById('delete-contestant-btn');
+let currentContestantId = null;
 
 addBtn.addEventListener('click', () => {
-    document.getElementById('modal-title').textContent = 'Add Contestant';
+    document.getElementById('modal-title').textContent = 'Add Model';
     document.getElementById('contestant-id').value = '';
+    currentContestantId = null;
     document.getElementById('c-name').value = '';
     document.getElementById('c-stage').value = '';
     document.getElementById('c-category').value = '';
     document.getElementById('c-bio').value = '';
     document.getElementById('c-photo').value = '';
+    document.getElementById('c-gallery').value = '';
     document.getElementById('c-order').value = '0';
+    if (deleteBtn) deleteBtn.style.display = 'none';
     modal.classList.add('active');
 });
 
 modalClose.addEventListener('click', () => modal.classList.remove('active'));
-document.querySelector('.modal-backdrop').addEventListener('click', () => modal.classList.remove('active'));
+const modalBackdrop = document.querySelector('.modal-backdrop');
+if (modalBackdrop) modalBackdrop.addEventListener('click', () => modal.classList.remove('active'));
+
+function parseGallery(text) {
+    if (!text) return [];
+    return text.split(/[\n,]+/).map(s => s.trim()).filter(s => s.length > 0);
+}
 
 contestantForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const id = document.getElementById('contestant-id').value;
+    const id = document.getElementById('contestant-id').value || currentContestantId;
+    const galleryImgs = parseGallery(document.getElementById('c-gallery').value);
     const data = {
         name: document.getElementById('c-name').value,
         stage_name: document.getElementById('c-stage').value,
         category: document.getElementById('c-category').value,
         bio: document.getElementById('c-bio').value,
         photo_url: document.getElementById('c-photo').value,
+        gallery_images: galleryImgs,
         order_index: parseInt(document.getElementById('c-order').value) || 0
     };
     try {
@@ -142,6 +155,20 @@ contestantForm.addEventListener('submit', async (e) => {
     } catch (err) {}
 });
 
+if (deleteBtn) {
+    deleteBtn.addEventListener('click', async () => {
+        const id = document.getElementById('contestant-id').value || currentContestantId;
+        if (!id) return;
+        if (!confirm('Remove this model? This cannot be undone.')) return;
+        try {
+            await fetch(`${API_BASE}/api/admin/contestants/${id}`, {method: 'DELETE', headers: authHeaders()});
+            modal.classList.remove('active');
+            loadContestants();
+            loadDashboard();
+        } catch (err) {}
+    });
+}
+
 async function loadContestants() {
     try {
         const res = await fetch(`${API_BASE}/api/admin/contestants`, {headers: authHeaders()});
@@ -149,7 +176,8 @@ async function loadContestants() {
         const wrap = document.getElementById('contestants-table');
         let html = '<table><thead><tr><th>Name</th><th>Stage Name</th><th>Category</th><th>Points</th><th>Actions</th></tr></thead><tbody>';
         contestants.forEach(c => {
-            html += `<tr><td>${c.name}</td><td>${c.stage_name || '-'}</td><td>${c.category || '-'}</td><td>${c.points_total}</td><td><button class="btn btn-small" onclick="editContestant(${JSON.stringify(c).replace(/"/g, '&quot;')})">Edit</button></td></tr>`;
+            const safe = JSON.stringify(c).replace(/"/g, '&quot;');
+            html += `<tr><td>${c.name}</td><td>${c.stage_name || '-'}</td><td>${c.category || '-'}</td><td>${c.points_total}</td><td><button class="btn btn-small" onclick="editContestant(JSON.parse(this.getAttribute('data-c')))" data-c='${safe}'>Edit</button></td></tr>`;
         });
         html += '</tbody></table>';
         wrap.innerHTML = html;
@@ -157,14 +185,21 @@ async function loadContestants() {
 }
 
 window.editContestant = (c) => {
-    document.getElementById('modal-title').textContent = 'Edit Contestant';
+    document.getElementById('modal-title').textContent = 'Edit Model';
     document.getElementById('contestant-id').value = c.id;
+    currentContestantId = c.id;
     document.getElementById('c-name').value = c.name || '';
     document.getElementById('c-stage').value = c.stage_name || '';
     document.getElementById('c-category').value = c.category || '';
     document.getElementById('c-bio').value = c.bio || '';
     document.getElementById('c-photo').value = c.photo_url || '';
+    let gallery = c.gallery_images || [];
+    if (!gallery.length && c.gallery) {
+        gallery = c.gallery.map(g => g.image_url || g);
+    }
+    document.getElementById('c-gallery').value = Array.isArray(gallery) ? gallery.join('\n') : '';
     document.getElementById('c-order').value = c.order_index || 0;
+    if (deleteBtn) deleteBtn.style.display = 'inline-flex';
     modal.classList.add('active');
 };
 
@@ -233,15 +268,37 @@ async function loadLogs() {
 document.getElementById('refresh-logs').addEventListener('click', loadLogs);
 
 // QR
+let qrDataUrl = null;
 async function loadQR() {
     try {
         const res = await fetch(`${API_BASE}/api/admin/qr`);
         const data = await res.json();
-        document.getElementById('qr-container').innerHTML = `<img src="${data.qr_code}" alt="QR Code">`;
-        document.getElementById('qr-url').textContent = data.url;
-    } catch (e) {}
+        qrDataUrl = data.qr_code || data.data_url;
+        document.getElementById('qr-container').innerHTML = `<img src="${qrDataUrl}" alt="QR Code">`;
+        document.getElementById('qr-url').textContent = data.url || '';
+    } catch (e) {
+        try {
+            const res = await fetch(`${API_BASE}/api/qr`);
+            const data = await res.json();
+            qrDataUrl = data.qr_code || data.data_url;
+            document.getElementById('qr-container').innerHTML = `<img src="${qrDataUrl}" alt="QR Code">`;
+            document.getElementById('qr-url').textContent = data.url || '';
+        } catch (e2) {}
+    }
 }
 document.getElementById('refresh-qr').addEventListener('click', loadQR);
+const dlBtn = document.getElementById('download-qr');
+if (dlBtn) {
+    dlBtn.addEventListener('click', () => {
+        if (!qrDataUrl) return;
+        const link = document.createElement('a');
+        link.href = qrDataUrl;
+        link.download = 'DA_VELA_Voter_QR.png';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    });
+}
 
 // Init
 if (token) {

@@ -21,7 +21,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-Base.metadata.create_all(bind=engine)
+    Base.metadata.create_all(bind=engine)
+    try:
+        from sqlalchemy import inspect, text
+        inspector = inspect(engine)
+        cols = [c['name'] for c in inspector.get_columns('contestants')]
+        if 'gallery_images' not in cols:
+            with engine.begin() as conn:
+                conn.execute(text('ALTER TABLE contestants ADD COLUMN gallery_images TEXT'))
+        # ensure model_gallery table exists
+    except Exception:
+        pass
 
 def init_db():
     db = SessionLocal()
@@ -71,19 +81,29 @@ app.include_router(admin.router, prefix="/api/admin", tags=["Admin"])
 
 @app.get("/api/gallery")
 async def gallery_api(db: Session = Depends(get_db)):
+    import random
     contestants = db.query(models.Contestant).filter(models.Contestant.is_active == True).order_by(models.Contestant.order_index).all()
-    return {
-        "gallery": [
-            {
+    items = []
+    for c in contestants:
+        gallery = []
+        if c.gallery:
+            for g in c.gallery:
+                gallery.append(g.image_url)
+        if not gallery and c.photo_url:
+            gallery = [c.photo_url]
+        elif c.photo_url and gallery and c.photo_url not in gallery:
+            gallery = [c.photo_url] + gallery
+        for img in gallery:
+            items.append({
                 "id": c.id,
+                "contestant_id": c.id,
                 "name": c.name,
                 "stage_name": c.stage_name,
                 "category": c.category,
-                "image_url": c.photo_url,
-            }
-            for c in contestants
-        ]
-    }
+                "image_url": img,
+            })
+    random.shuffle(items)
+    return {"gallery": items}
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
@@ -98,8 +118,27 @@ async def websocket_endpoint(websocket: WebSocket):
 async def health():
     return {"status": "ok", "app": "VoteCast", "event": config.settings.EVENT_NAME}
 
+
+@app.get("/api/qr")
+async def public_qr(request: Request):
+    import qrcode
+    import io
+    import base64
+    base_url = str(request.base_url).rstrip('/')
+    voter_url = f"{base_url}/voter"
+    qr = qrcode.QRCode(version=1, box_size=10, border=5)
+    qr.add_data(voter_url)
+    qr.make(fit=True)
+    img = qr.make_image(fill_color="#0f7c3e", back_color="white")
+    buf = io.BytesIO()
+    img.save(buf, format='PNG')
+    buf.seek(0)
+    img_str = base64.b64encode(buf.getvalue()).decode()
+    return {"qr_code": f"data:image/png;base64,{img_str}", "url": voter_url, "data_url": f"data:image/png;base64,{img_str}"}
+
 @app.get("/api/scoreboard")
 async def scoreboard(db: Session = Depends(get_db)):
+    import json as _json
     contestants = db.query(models.Contestant).filter(models.Contestant.is_active == True).order_by(models.Contestant.points_total.desc(), models.Contestant.order_index).all()
     state = db.query(models.EventState).first()
     winner = None
@@ -112,18 +151,37 @@ async def scoreboard(db: Session = Depends(get_db)):
     for c in contestants:
         pct = 0
         if total_voters > 0:
-            pct = round((c.points_total / (total_voters * 4)) * 100, 1)
+            pct = round((c.points_total / (total_voters * 3)) * 100, 1) if total_voters * 3 > 0 else 0
+        gallery = []
+        if c.gallery:
+            for g in sorted(c.gallery, key=lambda x: x.order_index):
+                gallery.append(g.image_url)
+        if not gallery and c.photo_url:
+            gallery = [c.photo_url]
+        elif c.photo_url and gallery and c.photo_url not in gallery:
+            gallery = [c.photo_url] + gallery
         result.append({
             "id": c.id,
             "name": c.name,
             "stage_name": c.stage_name,
             "category": c.category,
             "photo_url": c.photo_url,
+            "gallery": gallery,
             "votes_count": c.votes_count,
             "admin_votes_count": c.admin_votes_count,
             "points_total": c.points_total,
             "percentage": pct
         })
+
+    winner_gallery = []
+    if winner:
+        if winner.gallery:
+            for g in sorted(winner.gallery, key=lambda x: x.order_index):
+                winner_gallery.append(g.image_url)
+        if not winner_gallery and winner.photo_url:
+            winner_gallery = [winner.photo_url]
+        elif winner.photo_url and winner_gallery and winner.photo_url not in winner_gallery:
+            winner_gallery = [winner.photo_url] + winner_gallery
 
     return {
         "contestants": result,
@@ -133,8 +191,8 @@ async def scoreboard(db: Session = Depends(get_db)):
             "countdown_value": state.countdown_value if state else 0,
             "winner_declared": state.winner_declared if state else False
         },
-        "winner": {"id": winner.id, "name": winner.name, "stage_name": winner.stage_name, "photo_url": winner.photo_url, "points_total": winner.points_total} if winner else None,
-        "stats": {"total_voters": total_voters, "voted_count": voted_count}
+        "winner": {"id": winner.id, "name": winner.name, "stage_name": winner.stage_name, "photo_url": winner.photo_url, "points_total": winner.points_total, "gallery": winner_gallery} if winner else None,
+        "stats": {"total_voters": total_voters, "voted_count": voted_count, "audience_count": total_voters}
     }
 
 def find_frontend_base():

@@ -12,19 +12,31 @@ router = APIRouter()
 
 @router.get("/gallery")
 async def get_gallery(db: Session = Depends(get_db)):
+    import random
     contestants = db.query(models.Contestant).filter(models.Contestant.is_active == True).order_by(models.Contestant.order_index).all()
-    return {
-        "gallery": [
-            {
+    items = []
+    for c in contestants:
+        gallery = []
+        if c.gallery:
+            for g in c.gallery:
+                gallery.append(g.image_url)
+        if not gallery and c.photo_url:
+            gallery = [c.photo_url]
+        elif c.photo_url and gallery and c.photo_url not in gallery:
+            gallery = [c.photo_url] + gallery
+        if not gallery:
+            continue
+        for img in gallery:
+            items.append({
                 "id": c.id,
+                "contestant_id": c.id,
                 "name": c.name,
                 "stage_name": c.stage_name,
                 "category": c.category,
-                "image_url": c.photo_url,
-            }
-            for c in contestants
-        ]
-    }
+                "image_url": img,
+            })
+    random.shuffle(items)
+    return {"gallery": items}
 
 @router.post("/register")
 async def register_voter(voter: schemas.VoterRegister, request: Request, db: Session = Depends(get_db)):
@@ -111,8 +123,33 @@ async def cast_vote(vote_req: schemas.VoteRequest, request: Request, db: Session
 
 @router.get("/contestants")
 async def get_contestants(db: Session = Depends(get_db)):
+    import json as _json
     contestants = db.query(models.Contestant).filter(models.Contestant.is_active == True).order_by(models.Contestant.order_index).all()
-    return contestants
+    result = []
+    for c in contestants:
+        gallery = []
+        if c.gallery:
+            for g in sorted(c.gallery, key=lambda x: x.order_index):
+                gallery.append(g.image_url)
+        if not gallery and c.photo_url:
+            gallery = [c.photo_url]
+        elif c.photo_url and gallery and c.photo_url not in gallery:
+            gallery = [c.photo_url] + gallery
+        result.append({
+            "id": c.id,
+            "name": c.name,
+            "stage_name": c.stage_name,
+            "category": c.category,
+            "bio": c.bio,
+            "photo_url": c.photo_url,
+            "gallery": gallery,
+            "is_active": c.is_active,
+            "votes_count": c.votes_count,
+            "admin_votes_count": c.admin_votes_count,
+            "points_total": c.points_total,
+            "order_index": c.order_index
+        })
+    return result
 
 @router.get("/state")
 async def get_state(db: Session = Depends(get_db)):

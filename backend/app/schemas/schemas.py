@@ -8,10 +8,13 @@ class ContestantBase(BaseModel):
     category: Optional[str] = None
     bio: Optional[str] = None
     photo_url: Optional[str] = None
+    gallery_images: Optional[List[str]] = []
     order_index: Optional[int] = 0
+
 
 class ContestantCreate(ContestantBase):
     pass
+
 
 class ContestantResponse(ContestantBase):
     id: int
@@ -20,6 +23,7 @@ class ContestantResponse(ContestantBase):
     admin_votes_count: int
     points_total: float
     created_at: Optional[datetime] = None
+    gallery: List[dict] = []
     
     class Config:
         from_attributes = True

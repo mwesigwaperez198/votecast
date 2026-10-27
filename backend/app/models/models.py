@@ -22,13 +22,26 @@ class Contestant(Base):
     category = Column(String)
     bio = Column(Text)
     photo_url = Column(Text)
+    gallery_images = Column(Text)  # JSON array of image URLs
     order_index = Column(Integer, default=0)
     is_active = Column(Boolean, default=True)
     votes_count = Column(Integer, default=0)
     admin_votes_count = Column(Integer, default=0)
-    points_total = Column(Float, default=0.0)
+    points_total = Float(default=0.0)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    gallery = relationship("ModelGallery", back_populates="contestant", cascade="all, delete-orphan")
+
+
+class ModelGallery(Base):
+    __tablename__ = "model_gallery"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    contestant_id = Column(Integer, ForeignKey("contestants.id"))
+    image_url = Column(Text)
+    order_index = Column(Integer, default=0)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    contestant = relationship("Contestant", back_populates="gallery")
 
 class Voter(Base):
     __tablename__ = "voters"

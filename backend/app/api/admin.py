@@ -34,10 +34,18 @@ async def admin_login(login_data: schemas.AdminLogin, db: Session = Depends(get_
 
 @router.post("/contestants")
 async def create_contestant(contestant: schemas.ContestantCreate, request: Request, db: Session = Depends(get_db), admin=Depends(verify_admin)):
-    db_contestant = models.Contestant(**contestant.dict())
+    data = contestant.dict()
+    gallery_imgs = data.pop('gallery_images', []) or []
+    db_contestant = models.Contestant(**data)
     db.add(db_contestant)
     db.commit()
     db.refresh(db_contestant)
+    
+    for idx, img_url in enumerate(gallery_imgs):
+        if img_url and str(img_url).strip():
+            g = models.ModelGallery(contestant_id=db_contestant.id, image_url=str(img_url).strip(), order_index=idx)
+            db.add(g)
+    db.commit()
     
     log_entry = models.LogEntry(
         log_type="admin_action",
@@ -48,20 +56,52 @@ async def create_contestant(contestant: schemas.ContestantCreate, request: Reque
     db.commit()
     return db_contestant
 
+
 @router.get("/contestants")
 async def list_contestants(db: Session = Depends(get_db), admin=Depends(verify_admin)):
-    return db.query(models.Contestant).order_by(models.Contestant.order_index).all()
+    contestants = db.query(models.Contestant).order_by(models.Contestant.order_index).all()
+    result = []
+    for c in contestants:
+        gallery = [{"id": g.id, "image_url": g.image_url, "order_index": g.order_index} for g in c.gallery]
+        result.append({
+            "id": c.id,
+            "name": c.name,
+            "stage_name": c.stage_name,
+            "category": c.category,
+            "bio": c.bio,
+            "photo_url": c.photo_url,
+            "gallery_images": json.loads(c.gallery_images) if c.gallery_images else [g["image_url"] for g in gallery],
+            "gallery": gallery,
+            "order_index": c.order_index,
+            "is_active": c.is_active,
+            "votes_count": c.votes_count,
+            "admin_votes_count": c.admin_votes_count,
+            "points_total": c.points_total,
+            "created_at": c.created_at.isoformat() if c.created_at else None
+        })
+    return result
+
 
 @router.put("/contestants/{contestant_id}")
 async def update_contestant(contestant_id: int, contestant: schemas.ContestantCreate, request: Request, db: Session = Depends(get_db), admin=Depends(verify_admin)):
     db_contestant = db.query(models.Contestant).filter(models.Contestant.id == contestant_id).first()
     if not db_contestant:
         raise HTTPException(status_code=404, detail="Contestant not found")
-    for key, value in contestant.dict().items():
+    data = contestant.dict()
+    gallery_imgs = data.pop('gallery_images', None)
+    for key, value in data.items():
         setattr(db_contestant, key, value)
+    if gallery_imgs is not None:
+        db.query(models.ModelGallery).filter(models.ModelGallery.contestant_id == contestant_id).delete()
+        for idx, img_url in enumerate(gallery_imgs):
+            if img_url and str(img_url).strip():
+                g = models.ModelGallery(contestant_id=db_contestant.id, image_url=str(img_url).strip(), order_index=idx)
+                db.add(g)
+        db_contestant.gallery_images = json.dumps([str(x).strip() for x in gallery_imgs if x and str(x).strip()])
     db.commit()
     db.refresh(db_contestant)
     return db_contestant
+
 
 @router.delete("/contestants/{contestant_id}")
 async def delete_contestant(contestant_id: int, request: Request, db: Session = Depends(get_db), admin=Depends(verify_admin)):
@@ -78,33 +118,34 @@ async def admin_cast_vote(vote_req: schemas.AdminVoteRequest, request: Request, 
     if not contestant or not contestant.is_active:
         raise HTTPException(status_code=404, detail="Contestant not found")
     
-    vote_hash = helpers.generate_vote_hash(0, contestant.id, "admin", datetime.utcnow().isoformat())
-    ledger_entry = models.VoteLedger(
-        voter_id=None,
-        contestant_id=contestant.id,
-        voter_type="admin",
-        points=config.settings.VOTE_POINTS_ADMIN,
-        ip_address=request.client.host if request.client else None,
-        user_agent=request.headers.get("user-agent"),
-        vote_hash=vote_hash
-    )
-    db.add(ledger_entry)
+    pts = config.settings.VOTE_POINTS_ADMIN
+    for _ in range(pts):
+        vote_hash = helpers.generate_vote_hash(0, contestant.id, "admin", f"{datetime.utcnow().isoformat()}-{_}")
+        ledger_entry = models.VoteLedger(
+            voter_id=None,
+            contestant_id=contestant.id,
+            voter_type="admin",
+            points=1,
+            ip_address=request.client.host if request.client else None,
+            user_agent=request.headers.get("user-agent"),
+            vote_hash=vote_hash
+        )
+        db.add(ledger_entry)
     
-    contestant.votes_count += 1
-    contestant.admin_votes_count += 1
-    contestant.points_total += config.settings.VOTE_POINTS_ADMIN
+    contestant.admin_votes_count += 1  # count as 1 admin action = represents 3 people
+    contestant.points_total += pts
     
     db.commit()
     
     log_entry = models.LogEntry(
         log_type="vote",
-        message=f"Admin vote cast ({config.settings.VOTE_POINTS_ADMIN} pts) for {contestant.name}",
-        data=json.dumps({"contestant_id": contestant.id, "points": 3, "voter_type": "admin", "vote_count": contestant.votes_count})
+        message=f"Admin vote cast ({pts} pts) for {contestant.name}",
+        data=json.dumps({"contestant_id": contestant.id, "points": pts, "voter_type": "admin", "vote_count": contestant.admin_votes_count})
     )
     db.add(log_entry)
     db.commit()
     
-    return {"message": f"Admin vote cast (+{config.settings.VOTE_POINTS_ADMIN} pts)", "contestant": contestant.name, "points": 3, "votes": contestant.votes_count}
+    return {"message": f"Admin vote cast (+{pts} pts)", "contestant": contestant.name, "points": pts, "votes": contestant.admin_votes_count}
 
 @router.post("/event/control")
 async def control_event(control: schemas.EventControl, request: Request, db: Session = Depends(get_db), admin=Depends(verify_admin)):
@@ -151,6 +192,7 @@ async def control_event(control: schemas.EventControl, request: Request, db: Ses
         state.winner_id = None
         db.query(models.Contestant).update({models.Contestant.votes_count: 0, models.Contestant.admin_votes_count: 0, models.Contestant.points_total: 0})
         db.query(models.Voter).update({models.Voter.has_voted: False, models.Voter.voted_at: None})
+        db.query(models.VoteLedger).delete()
     
     db.commit()
     db.refresh(state)
@@ -168,8 +210,9 @@ async def get_stats(db: Session = Depends(get_db), admin=Depends(verify_admin)):
         "total_voters": total_voters,
         "voted_count": voted_count,
         "total_votes": total_votes,
-        "contestants": [{"id": c.id, "name": c.name, "votes_count": c.votes_count, "admin_votes_count": c.admin_votes_count, "points_total": c.points_total, "photo_url": c.photo_url} for c in contestants],
-        "state": {"status": state.status if state else "idle", "winner_declared": state.winner_declared if state else False, "winner_id": state.winner_id if state else None}
+        "audience_count": total_voters,
+        "contestants": [{"id": c.id, "name": c.name, "votes_count": c.votes_count, "admin_votes_count": c.admin_votes_count, "points_total": c.points_total, "photo_url": c.photo_url, "stage_name": c.stage_name} for c in contestants],
+        "state": {"status": state.status if state else "idle", "winner_declared": state.winner_declared if state else False, "winner_id": state.winner_id if state else None, "countdown_active": state.countdown_active if state else False, "countdown_value": state.countdown_value if state else 0}
     }
 
 @router.get("/logs")

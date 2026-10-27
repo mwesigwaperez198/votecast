@@ -106,7 +106,7 @@
                     <div class="panel-head-row">
                         <div>
                             <h2>Models</h2>
-                            <p>Manage runway profiles</p>
+                            <p>Manage runway profiles + galleries</p>
                         </div>
                         <button class="cta sm" id="add-contestant-btn"><span>Add Model</span></button>
                     </div>
@@ -175,7 +175,10 @@
                     </div>
                     <div class="qr-frame" id="qr-container"></div>
                     <div class="qr-url" id="qr-url"></div>
-                    <button class="cta" id="refresh-qr" style="align-self:center"><span>Refresh QR</span></button>
+                    <div style="display:flex;gap:10px;align-self:center;flex-wrap:wrap;justify-content:center">
+                        <button class="cta" id="refresh-qr"><span>Refresh QR</span></button>
+                        <button class="cta ghost" id="download-qr"><span>Download QR</span></button>
+                    </div>
                 </div>
             </section>
 
@@ -212,8 +215,12 @@
                 <div class="field"><label>Category</label><input id="c-category" placeholder="Fashion Model"></div>
                 <div class="field"><label>Biography</label><textarea id="c-bio"></textarea></div>
                 <div class="field"><label>Portrait URL</label><input id="c-photo" type="url" placeholder="https://..."></div>
+                <div class="field"><label>Gallery Images (one URL per line or comma separated)</label><textarea id="c-gallery" placeholder="https://...\nhttps://..."></textarea></div>
                 <div class="field"><label>Display Order</label><input id="c-order" type="number" value="0"></div>
-                <button class="cta" type="submit"><span>Save Profile</span></button>
+                <div style="display:flex;gap:10px;flex-wrap:wrap">
+                    <button class="cta" type="submit" style="flex:1"><span>Save Profile</span></button>
+                    <button class="cta ghost" type="button" id="delete-contestant-btn" style="display:none;flex:0 0 auto"><span>Remove Model</span></button>
+                </div>
             </form>
         </div>
     </div>
