@@ -169,15 +169,18 @@ async function route() {
         return;
     }
     if (state.status === 'starting') {
-        if (!welcomeShown) {
-            if (document.querySelector('.welcome-overlay')) welcomeShown = true;
-            else { try { showWelcomeOverlay(); } catch(e){} welcomeShown = true; }
+        if (!document.querySelector('.welcome-overlay')) {
+            try { showWelcomeOverlay(); } catch(e){}
         }
+        welcomeShown = true;
         if (countdownDisplay) {
-            countdownDisplay.textContent = `Countdown: ${state.countdown_value}s`;
+            countdownDisplay.textContent = `${state.countdown_value}`;
             countdownDisplay.style.display = 'block';
         }
-        closedText.textContent = 'Session starting — please hold';
+        if (closedText) {
+            if (state.countdown_value <= 1) closedText.textContent = 'HERE WE GO';
+            else closedText.textContent = 'Session starting — please hold';
+        }
         show(closedSection);
         return;
     }

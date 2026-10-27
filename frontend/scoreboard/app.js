@@ -95,4 +95,4 @@ window.showModelGallery = function(imgEl) {
 };
 
 load();
-setInterval(load, 1500);
+setInterval(load, 1000);
