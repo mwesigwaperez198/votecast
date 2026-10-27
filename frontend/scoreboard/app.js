@@ -26,10 +26,11 @@ async function load() {
             else if (st === 'starting') sbState.textContent = 'STARTING';
             else if (st === 'runway_ended') sbState.textContent = 'RUNWAY ENDED';
             else if (st === 'ended') sbState.textContent = 'CONCLUDED';
-            else sbState.textContent = 'AWAITING';
+            else if (st === 'idle') sbState.textContent = 'AWAITING';
+            else sbState.textContent = st.toUpperCase();
         }
 
-        if (data.state.countdown_active) {
+        if (data.state.countdown_active || (st === 'starting' || st === 'runway_ended')) {
             cd.classList.add('active');
             if (data.state.countdown_value !== lastCount) {
                 lastCount = data.state.countdown_value;
