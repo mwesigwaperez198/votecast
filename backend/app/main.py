@@ -21,17 +21,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-    Base.metadata.create_all(bind=engine)
-    try:
-        from sqlalchemy import inspect, text
-        inspector = inspect(engine)
-        cols = [c['name'] for c in inspector.get_columns('contestants')]
-        if 'gallery_images' not in cols:
-            with engine.begin() as conn:
-                conn.execute(text('ALTER TABLE contestants ADD COLUMN gallery_images TEXT'))
-        # ensure model_gallery table exists
-    except Exception:
-        pass
+Base.metadata.create_all(bind=engine)
+try:
+    from sqlalchemy import inspect, text
+    inspector = inspect(engine)
+    cols = [c['name'] for c in inspector.get_columns('contestants')]
+    if 'gallery_images' not in cols:
+        with engine.begin() as conn:
+            conn.execute(text('ALTER TABLE contestants ADD COLUMN gallery_images TEXT'))
+    # ensure model_gallery table exists
+except Exception:
+    pass
 
 def init_db():
     db = SessionLocal()
