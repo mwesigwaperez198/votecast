@@ -27,7 +27,7 @@ class Contestant(Base):
     is_active = Column(Boolean, default=True)
     votes_count = Column(Integer, default=0)
     admin_votes_count = Column(Integer, default=0)
-    points_total = Float(default=0.0)
+    points_total = Column(Float, default=0.0)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     gallery = relationship("ModelGallery", back_populates="contestant", cascade="all, delete-orphan")
