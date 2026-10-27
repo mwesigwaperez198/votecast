@@ -198,8 +198,8 @@ async function loadContestants() {
         const wrap = document.getElementById('contestants-table');
         let html = '<table><thead><tr><th>Name</th><th>Stage Name</th><th>Category</th><th>Points</th><th>Actions</th></tr></thead><tbody>';
         contestants.forEach(c => {
-            const safe = JSON.stringify(c).replace(/"/g, '&quot;');
-            html += `<tr><td>${c.name}</td><td>${c.stage_name || '-'}</td><td>${c.category || '-'}</td><td>${c.points_total}</td><td><button class="btn btn-small" onclick="editContestant(JSON.parse(this.getAttribute('data-c')))" data-c='${safe}'>Edit</button></td></tr>`;
+            const safe = JSON.stringify(c).replace(/'/g, "&#39;").replace(/"/g, '&quot;');
+            html += `<tr><td>${c.name || ''}</td><td>${c.stage_name || '-'}</td><td>${c.category || '-'}</td><td>${c.points_total || 0}</td><td><button class="btn btn-small" onclick='editContestant(${JSON.stringify(c).replace(/'/g,"&#39;")})'>Edit</button> <button class="btn btn-small" style="margin-left:6px" onclick="deleteContestant(${c.id})">Remove</button></td></tr>`;
         });
         html += '</tbody></table>';
         wrap.innerHTML = html;
@@ -207,9 +207,12 @@ async function loadContestants() {
 }
 
 window.editContestant = (c) => {
+    if (typeof c === 'string') {
+        try { c = JSON.parse(c); } catch(e) {}
+    }
     document.getElementById('modal-title').textContent = 'Edit Model';
-    document.getElementById('contestant-id').value = c.id;
-    currentContestantId = c.id;
+    document.getElementById('contestant-id').value = c.id || '';
+    currentContestantId = c.id || null;
     document.getElementById('c-name').value = c.name || '';
     document.getElementById('c-stage').value = c.stage_name || '';
     document.getElementById('c-category').value = c.category || '';
@@ -218,12 +221,22 @@ window.editContestant = (c) => {
     const gf = document.getElementById('c-gallery-file'); if (gf) gf.value = '';
     let gallery = c.gallery_images || [];
     if (!gallery.length && c.gallery) {
-        gallery = c.gallery.map(g => g.image_url || g);
+        gallery = c.gallery.map(g => (g.image_url || g));
     }
     document.getElementById('c-gallery').value = Array.isArray(gallery) ? gallery.join('\n') : '';
     document.getElementById('c-order').value = c.order_index || 0;
     if (deleteBtn) deleteBtn.style.display = 'inline-flex';
     modal.classList.add('active');
+};
+
+window.deleteContestant = async (id) => {
+    if (!id) return;
+    if (!confirm('Remove this model? This cannot be undone.')) return;
+    try {
+        await fetch(`${API_BASE}/api/admin/contestants/${id}`, {method: 'DELETE', headers: authHeaders()});
+        loadContestants();
+        loadDashboard();
+    } catch (err) {}
 };
 
 // Voting Control
