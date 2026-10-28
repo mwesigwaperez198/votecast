@@ -1,3 +1,5 @@
+import asyncio
+from datetime import datetime
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -33,6 +35,7 @@ try:
 except Exception:
     pass
 
+
 def init_db():
     db = SessionLocal()
     try:
@@ -53,7 +56,40 @@ def init_db():
     finally:
         db.close()
 
+
 init_db()
+
+
+async def countdown_loop():
+    while True:
+        await asyncio.sleep(1)
+        db = SessionLocal()
+        try:
+            state = db.query(models.EventState).first()
+            if not state:
+                continue
+
+            if state.countdown_active and state.countdown_value > 0:
+                state.countdown_value -= 1
+                db.commit()
+
+            if state.countdown_active and state.countdown_value <= 0:
+                if state.status == "starting":
+                    state.status = "voting"
+                    state.countdown_active = False
+                    state.countdown_value = 0
+                    db.commit()
+                elif state.status == "runway_ended":
+                    state.status = "ended"
+                    state.countdown_active = False
+                    state.countdown_value = 0
+                    state.ended_at = datetime.utcnow()
+                    db.commit()
+        except Exception:
+            db.rollback()
+        finally:
+            db.close()
+
 
 class ConnectionManager:
     def __init__(self):
@@ -74,10 +110,17 @@ class ConnectionManager:
             except Exception:
                 pass
 
+
 manager = ConnectionManager()
 
 app.include_router(vote.router, prefix="/api/vote", tags=["Vote"])
 app.include_router(admin.router, prefix="/api/admin", tags=["Admin"])
+
+
+@app.on_event("startup")
+async def startup_event():
+    app.state.countdown_task = asyncio.create_task(countdown_loop())
+
 
 @app.get("/api/gallery")
 async def gallery_api(db: Session = Depends(get_db)):
@@ -105,6 +148,7 @@ async def gallery_api(db: Session = Depends(get_db)):
     random.shuffle(items)
     return {"gallery": items}
 
+
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await manager.connect(websocket)
@@ -113,6 +157,7 @@ async def websocket_endpoint(websocket: WebSocket):
             await websocket.receive_text()
     except WebSocketDisconnect:
         manager.disconnect(websocket)
+
 
 @app.get("/api/health")
 async def health():
@@ -135,6 +180,7 @@ async def public_qr(request: Request):
     buf.seek(0)
     img_str = base64.b64encode(buf.getvalue()).decode()
     return {"qr_code": f"data:image/png;base64,{img_str}", "url": voter_url, "data_url": f"data:image/png;base64,{img_str}"}
+
 
 @app.get("/api/scoreboard")
 async def scoreboard(db: Session = Depends(get_db)):
@@ -195,6 +241,7 @@ async def scoreboard(db: Session = Depends(get_db)):
         "stats": {"total_voters": total_voters, "voted_count": voted_count, "audience_count": total_voters}
     }
 
+
 def find_frontend_base():
     candidates = [
         os.environ.get("FRONTEND_DIR"),
@@ -207,10 +254,12 @@ def find_frontend_base():
             return os.path.abspath(c)
     return "/app/frontend"
 
+
 frontend_dir = find_frontend_base()
 mimetypes.add_type('text/css', '.css')
 mimetypes.add_type('application/javascript', '.js')
 mimetypes.add_type('text/javascript', '.js')
+
 
 @app.get("/")
 async def root():
@@ -218,6 +267,7 @@ async def root():
     if os.path.exists(voter_index):
         return FileResponse(voter_index, media_type="text/html")
     return {"message": "VoteCast API - DA_VELA Fashions"}
+
 
 @app.get("/voter")
 @app.get("/voter/")
@@ -228,6 +278,7 @@ async def voter_page():
         return FileResponse(voter_index, media_type="text/html")
     raise HTTPException(status_code=404, detail="Not Found")
 
+
 @app.get("/voter/style.css")
 async def voter_css():
     path = os.path.join(frontend_dir, "voter", "style.css")
@@ -235,12 +286,14 @@ async def voter_css():
         return FileResponse(path, media_type="text/css")
     raise HTTPException(status_code=404, detail="Not Found")
 
+
 @app.get("/voter/app.js")
 async def voter_js():
     path = os.path.join(frontend_dir, "voter", "app.js")
     if os.path.exists(path):
         return FileResponse(path, media_type="application/javascript")
     raise HTTPException(status_code=404, detail="Not Found")
+
 
 @app.get("/cms")
 @app.get("/cms/")
@@ -251,6 +304,7 @@ async def cms_page():
         return FileResponse(cms_index, media_type="text/html")
     raise HTTPException(status_code=404, detail="Not Found")
 
+
 @app.get("/cms/style.css")
 async def cms_css():
     path = os.path.join(frontend_dir, "cms", "style.css")
@@ -258,12 +312,14 @@ async def cms_css():
         return FileResponse(path, media_type="text/css")
     raise HTTPException(status_code=404, detail="Not Found")
 
+
 @app.get("/cms/app.js")
 async def cms_js():
     path = os.path.join(frontend_dir, "cms", "app.js")
     if os.path.exists(path):
         return FileResponse(path, media_type="application/javascript")
     raise HTTPException(status_code=404, detail="Not Found")
+
 
 @app.get("/scoreboard")
 @app.get("/scoreboard/")
@@ -275,6 +331,7 @@ async def scoreboard_page():
         return FileResponse(sb_index, media_type="text/html")
     raise HTTPException(status_code=404, detail="Not Found")
 
+
 @app.get("/scoreboard/style.css")
 async def scoreboard_css():
     path = os.path.join(frontend_dir, "scoreboard", "style.css")
@@ -282,12 +339,14 @@ async def scoreboard_css():
         return FileResponse(path, media_type="text/css")
     raise HTTPException(status_code=404, detail="Not Found")
 
+
 @app.get("/scoreboard/app.js")
 async def scoreboard_js():
     path = os.path.join(frontend_dir, "scoreboard", "app.js")
     if os.path.exists(path):
         return FileResponse(path, media_type="application/javascript")
     raise HTTPException(status_code=404, detail="Not Found")
+
 
 @app.get("/health")
 async def health_simple():
