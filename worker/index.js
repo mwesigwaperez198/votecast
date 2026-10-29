@@ -216,6 +216,11 @@ async function handleApi(request, env, url) {
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
+
+    if (url.pathname === '/' || url.pathname === '') {
+      return Response.redirect(new URL('/voter/', url).toString(), 302);
+    }
+
     if (url.pathname.startsWith('/api/')) {
       try {
         return await handleApi(request, env, url);
@@ -224,12 +229,19 @@ export default {
       }
     }
 
-    const mapped = PAGE_ROUTES[url.pathname];
-  if (mapped && (request.method === 'GET' || request.method === 'HEAD')) {
-    url.pathname = mapped;
-    return env.ASSETS.fetch(new Request(url.toString(), request));
-  }
+    if ((url.pathname === '/voter' || url.pathname === '/cms' || url.pathname === '/scoreboard' || url.pathname === '/dashboard' || url.pathname === '/vote' || url.pathname === '/admin') && !url.pathname.endsWith('/')) {
+      return Response.redirect(url.pathname + '/', 302);
+    }
 
-  return env.ASSETS.fetch(request);
+    const mapped = PAGE_ROUTES[url.pathname] || PAGE_ROUTES[url.pathname.replace(/\/$/, '')] || PAGE_ROUTES[url.pathname + '/'];
+    if (mapped && (request.method === 'GET' || request.method === 'HEAD')) {
+      const assetRequest = new Request(new URL(mapped, url.origin).toString(), {
+        method: request.method,
+        headers: request.headers
+      });
+      return env.ASSETS.fetch(assetRequest);
+    }
+
+    return env.ASSETS.fetch(request);
   }
 };
