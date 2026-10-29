@@ -73,20 +73,29 @@ export async function verifyToken(token, secret) {
 export async function hashPassword(password, salt) {
   const useSalt = salt || randomToken(16);
   const key = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveBits']);
+  const iterations = 100000;
   const bits = await crypto.subtle.deriveBits(
-    { name: 'PBKDF2', salt: enc.encode(useSalt), iterations: 120000, hash: 'SHA-256' },
+    { name: 'PBKDF2', salt: enc.encode(useSalt), iterations, hash: 'SHA-256' },
     key, 256
   );
   const hex = Array.from(new Uint8Array(bits)).map(b => b.toString(16).padStart(2, '0')).join('');
-  return `pbkdf2$120000$${useSalt}$${hex}`;
+  return `pbkdf2$${iterations}$${useSalt}$${hex}`;
 }
 
 export async function verifyPassword(password, stored) {
   if (!stored) return false;
   const parts = stored.split('$');
   if (parts.length !== 4 || parts[0] !== 'pbkdf2') return false;
-  const calc = await hashPassword(password, parts[2]);
-  return calc === stored;
+  const iterations = parseInt(parts[1], 10);
+  if (iterations > 100000) return false;
+  const key = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveBits']);
+  const bits = await crypto.subtle.deriveBits(
+    { name: 'PBKDF2', salt: enc.encode(parts[2]), iterations, hash: 'SHA-256' },
+    key, 256
+  );
+  const hex = Array.from(new Uint8Array(bits)).map(b => b.toString(16).padStart(2, '0')).join('');
+  const calc = `pbkdf2$${iterations}$${parts[2]}$${hex}`;
+  return timingSafeEqual(calc, stored);
 }
 
 export function parseDataUrl(value) {

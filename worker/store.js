@@ -121,8 +121,8 @@ export class Store extends DurableObject {
     this.sql.exec("INSERT OR IGNORE INTO event_state (id, status, countdown_active, countdown_value, winner_declared) VALUES (1, 'idle', 0, 0, 0)");
     this.sql.exec("INSERT OR IGNORE INTO scoreboard_display (id, mode) VALUES (1, 'leaderboard')");
 
-    const username = this.env.ADMIN_USERNAME || 'admin';
-    const password = this.env.ADMIN_PASSWORD || 'admin123';
+    const username = this.env.ADMIN_USERNAME || 'Perez256';
+    const password = this.env.ADMIN_PASSWORD || 'novara123';
     const admins = this.sql.exec('SELECT * FROM admins ORDER BY id LIMIT 1').toArray();
 
     if (!admins.length) {
@@ -135,10 +135,14 @@ export class Store extends DurableObject {
     }
 
     const admin = admins[0];
-    const matches = await verifyPassword(password, admin.password_hash);
+    let matches = await verifyPassword(password, admin.password_hash);
     if (!matches) {
+      // Try to fix legacy high-iteration hashes by re-hashing on next successful login? Also force reset
       const hash = await hashPassword(password);
       this.sql.exec('UPDATE admins SET username = ?, password_hash = ? WHERE id = ?', username, hash, admin.id);
+      matches = await verifyPassword(password, hash);
+    } else if (admin.username !== username) {
+      this.sql.exec('UPDATE admins SET username = ? WHERE id = ?', username, admin.id);
     }
   }
 
