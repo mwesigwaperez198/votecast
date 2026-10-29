@@ -94,6 +94,7 @@ async function handleApi(request, env, url) {
     return json(voter);
   }
   if (path === '/api/scoreboard' && method === 'GET') return json(await store(env).getScoreboard());
+  if (path === '/api/scoreboard/display' && method === 'GET') return json(await store(env).getScoreboardDisplay());
 
   if (path === '/api/vote/register' && method === 'POST') {
     const body = await readJson(request);
@@ -192,6 +193,18 @@ async function handleApi(request, env, url) {
     return json(await client.getLogs(limit));
   }
   if (path === '/api/admin/voters' && method === 'GET') return json(await client.getVoters());
+  if (path === '/api/admin/scoreboard/display' && method === 'GET') return json(await client.getScoreboardDisplay());
+  if (path === '/api/admin/scoreboard/display' && method === 'PUT') {
+    const body = await readJson(request);
+    const saved = await client.setScoreboardDisplay({
+      mode: body.mode,
+      title: body.title,
+      body: body.body,
+      image_url: body.image_url,
+      show_countdown: body.show_countdown
+    });
+    return json(saved);
+  }
   if (path === '/api/admin/countdown/decrement' && method === 'POST') {
     const state = await client.decrementCountdown();
     return json({ ...state, message: `Countdown at ${state.countdown_value}s` });

@@ -89,6 +89,15 @@ CREATE TABLE IF NOT EXISTS settings (
   key TEXT PRIMARY KEY,
   value TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS scoreboard_display (
+  id INTEGER PRIMARY KEY CHECK (id = 1),
+  mode TEXT DEFAULT 'leaderboard',
+  title TEXT,
+  body TEXT,
+  image_url TEXT,
+  show_countdown INTEGER DEFAULT 0,
+  updated_at INTEGER
+);
 CREATE INDEX IF NOT EXISTS idx_voters_token ON voters(session_token);
 CREATE INDEX IF NOT EXISTS idx_voters_email ON voters(email);
 CREATE INDEX IF NOT EXISTS idx_gallery_contestant ON model_gallery(contestant_id);
@@ -110,6 +119,7 @@ export class Store extends DurableObject {
   async _bootstrap() {
     this.sql.exec(SCHEMA);
     this.sql.exec("INSERT OR IGNORE INTO event_state (id, status, countdown_active, countdown_value, winner_declared) VALUES (1, 'idle', 0, 0, 0)");
+    this.sql.exec("INSERT OR IGNORE INTO scoreboard_display (id, mode) VALUES (1, 'leaderboard')");
 
     const username = this.env.ADMIN_USERNAME || 'admin';
     const password = this.env.ADMIN_PASSWORD || 'admin123';
@@ -239,6 +249,43 @@ export class Store extends DurableObject {
     const value = randomToken(32);
     this.sql.exec("INSERT INTO settings (key, value) VALUES ('token_secret', ?)", value);
     return value;
+  }
+
+  async getScoreboardDisplay() {
+    await this._ready();
+    const row = this.sql.exec('SELECT * FROM scoreboard_display WHERE id = 1').toArray()[0];
+    if (!row) {
+      this.sql.exec("INSERT OR IGNORE INTO scoreboard_display (id, mode) VALUES (1, 'leaderboard')");
+      return { mode: 'leaderboard', title: '', body: '', image_url: '', show_countdown: 0 };
+    }
+    return {
+      mode: row.mode || 'leaderboard',
+      title: row.title || '',
+      body: row.body || '',
+      image_url: row.image_url || '',
+      show_countdown: !!row.show_countdown,
+      updated_at: row.updated_at || null
+    };
+  }
+
+  async setScoreboardDisplay({ mode, title, body, image_url, show_countdown }) {
+    await this._ready();
+    const now = Date.now();
+    let img = image_url || '';
+    if (img && img.startsWith('data:')) {
+      img = this._saveImage(img);
+    }
+    this.sql.exec(
+      'INSERT OR REPLACE INTO scoreboard_display (id, mode, title, body, image_url, show_countdown, updated_at) VALUES (1, ?, ?, ?, ?, ?, ?)',
+      mode || 'leaderboard',
+      title || '',
+      body || '',
+      img,
+      show_countdown ? 1 : 0,
+      now
+    );
+    this._log('admin_action', `Scoreboard display updated: ${mode || 'leaderboard'}`, { mode, has_image: !!img });
+    return this.getScoreboardDisplay();
   }
 
   async getState() {

@@ -14,6 +14,7 @@ const titles = {
     dashboard: 'Overview',
     contestants: 'Models',
     voting: 'Session Control',
+    display: 'Scoreboard Display',
     qr: 'QR Access',
     settings: 'Logs'
 };
@@ -476,3 +477,86 @@ if (token) {
 } else {
     showLogin();
 }
+
+
+async function fileToDataURL2(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+}
+
+async function loadScoreboardDisplay() {
+    if (!token) return;
+    try {
+        const res = await adminFetch(`${API_BASE}/api/admin/scoreboard/display`);
+        if (!res.ok) return;
+        const data = await res.json();
+        document.getElementById('display-mode').value = data.mode || 'leaderboard';
+        document.getElementById('display-title').value = data.title || '';
+        document.getElementById('display-body').value = data.body || '';
+        document.getElementById('display-image-url').value = data.image_url || '';
+        document.getElementById('display-countdown').checked = !!data.show_countdown;
+        const prev = document.getElementById('display-preview');
+        const pb = document.getElementById('display-preview-body');
+        if (data.mode && data.mode !== 'leaderboard') {
+            prev.style.display = 'block';
+            pb.innerHTML = `<strong>${esc(data.mode).toUpperCase()}</strong><br>${esc(data.title)}<br>${esc((data.body||'').substring(0,120))}`;
+        } else {
+            prev.style.display = 'none';
+        }
+    } catch (e) {}
+}
+
+document.getElementById('display-refresh').addEventListener('click', loadScoreboardDisplay);
+
+document.getElementById('display-leaderboard').addEventListener('click', async () => {
+    try {
+        await adminFetch(`${API_BASE}/api/admin/scoreboard/display`, {
+            method: 'PUT',
+            body: JSON.stringify({ mode: 'leaderboard', title: '', body: '', image_url: '', show_countdown: false })
+        });
+        document.getElementById('display-mode').value = 'leaderboard';
+        document.getElementById('display-title').value = '';
+        document.getElementById('display-body').value = '';
+        document.getElementById('display-image-url').value = '';
+        document.getElementById('display-countdown').checked = false;
+        document.getElementById('display-preview').style.display = 'none';
+        alert('Scoreboard reverted to live leaderboard');
+    } catch (e) {}
+});
+
+document.getElementById('display-push').addEventListener('click', async () => {
+    const btn = document.getElementById('display-push');
+    btn.disabled = true;
+    try {
+        let image_url = document.getElementById('display-image-url').value.trim();
+        const file = document.getElementById('display-image-file').files[0];
+        if (file) {
+            const dataUrl = await fileToDataURL2(file);
+            const res = await adminFetch(`${API_BASE}/api/admin/contestants`, { method: 'GET' }).catch(()=>null);
+            // reuse media upload by creating a quick contestant update is heavy; just use dataUrl via our store? easier: post to a temp path not needed
+            // actually our _saveImage in worker can handle data URLs on contestant create/update; for display just send dataUrl and worker will convert
+            image_url = dataUrl;
+        }
+        const payload = {
+            mode: document.getElementById('display-mode').value,
+            title: document.getElementById('display-title').value,
+            body: document.getElementById('display-body').value,
+            image_url,
+            show_countdown: document.getElementById('display-countdown').checked
+        };
+        await adminFetch(`${API_BASE}/api/admin/scoreboard/display`, {
+            method: 'PUT',
+            body: JSON.stringify(payload)
+        });
+        await loadScoreboardDisplay();
+        alert('Displayed on scoreboard!');
+    } catch (e) {
+        alert('Failed to push display');
+    } finally {
+        btn.disabled = false;
+    }
+});

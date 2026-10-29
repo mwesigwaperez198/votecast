@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600;700;800;900&family=Cormorant:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/scoreboard/style.css?v=6">
+    <link rel="stylesheet" href="/scoreboard/style.css?v=10">
 </head>
 <body>
     <div class="noise"></div>
@@ -42,6 +42,16 @@
                 <div class="cd-lab" id="cd-lab">GET READY</div>
             </div>
 
+            <div id="overlay" class="overlay">
+                <div class="overlay-backdrop" id="overlay-backdrop"></div>
+                <img id="overlay-image" class="overlay-image" src="" alt="" style="display:none">
+                <div class="overlay-content">
+                    <div class="overlay-kicker" id="overlay-kicker"></div>
+                    <h2 class="overlay-title" id="overlay-title"></h2>
+                    <p class="overlay-body" id="overlay-body"></p>
+                </div>
+            </div>
+
             <div id="win" class="win">
                 <div class="win-bg"></div>
                 <div class="win-inner">
@@ -56,7 +66,7 @@
                         </div>
                         <div class="win-card">
                             <span class="win-val" id="win-voters">0</span>
-                            <span class="win-lab">TOTAL VOTERS</span>
+                            <span class="win-lab">AUDIENCE VOTES</span>
                         </div>
                         <div class="win-card">
                             <span class="win-val" id="win-pct">0%</span>
@@ -66,7 +76,16 @@
                 </div>
             </div>
 
-            <div class="board" id="board"></div>
+            <div class="board-wrap" id="board-wrap">
+                <div class="board-head">
+                    <div>
+                        <div class="board-kicker">DA-VELA HOUSE OF ART</div>
+                        <h2 class="board-title">LIVE RANKINGS</h2>
+                    </div>
+                    <div class="board-meta" id="board-meta">0 MODELS &middot; 0 VOTES</div>
+                </div>
+                <div class="board" id="board"></div>
+            </div>
         </main>
 
         <footer class="sb-foot">
@@ -74,6 +93,6 @@
         </footer>
     </div>
 
-    <script src="/scoreboard/app.js?v=6"></script>
+    <script src="/scoreboard/app.js?v=10"></script>
 </body>
 </html>

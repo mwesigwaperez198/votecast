@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600;700&family=Cormorant:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/cms/style.css?v=6">
+    <link rel="stylesheet" href="/cms/style.css?v=7">
 </head>
 <body>
     <div class="noise"></div>
@@ -29,11 +29,13 @@
                 <button class="nav-item active" data-tab="dashboard"><span>Overview</span></button>
                 <button class="nav-item" data-tab="contestants"><span>Models</span></button>
                 <button class="nav-item" data-tab="voting"><span>Session Control</span></button>
+                <button class="nav-item" data-tab="display"><span>Scoreboard Display</span></button>
                 <button class="nav-item" data-tab="qr"><span>QR Access</span></button>
                 <button class="nav-item" data-tab="settings"><span>Logs</span></button>
             </nav>
             <div class="sidebar-bottom">
                 <a class="ghost-link" href="/scoreboard" target="_blank">Open Scoreboard</a>
+                <a class="ghost-link" href="/voter" target="_blank">Open Voter</a>
                 <button class="ghost-link" id="logout-btn">Sign Out</button>
             </div>
         </aside>
@@ -142,6 +144,57 @@
                 </div>
             </section>
 
+            <section id="tab-display" class="tab">
+                <div class="panel">
+                    <div class="panel-head-row">
+                        <div>
+                            <h2>Scoreboard Display Control</h2>
+                            <p>Push custom text, welcome message or full-screen image directly to the scoreboard</p>
+                        </div>
+                        <button class="ghost-btn" id="display-refresh">Refresh</button>
+                    </div>
+                    <div class="display-grid">
+                        <div class="field">
+                            <label>Display Mode</label>
+                            <select id="display-mode">
+                                <option value="leaderboard">Show Live Leaderboard</option>
+                                <option value="welcome">Show Welcome Message</option>
+                                <option value="message">Show Custom Text</option>
+                                <option value="image">Show Full Screen Image</option>
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label>Headline / Title</label>
+                            <input id="display-title" placeholder="e.g. DA-VELA HOUSE OF ART">
+                        </div>
+                        <div class="field" style="grid-column: 1 / -1">
+                            <label>Body Message</label>
+                            <textarea id="display-body" rows="5" placeholder="Type your message here. It will appear large on the scoreboard instantly."></textarea>
+                        </div>
+                        <div class="field">
+                            <label>Full Screen Image (Upload)</label>
+                            <input id="display-image-file" type="file" accept="image/*">
+                        </div>
+                        <div class="field">
+                            <label>Or Image URL</label>
+                            <input id="display-image-url" placeholder="https://... or /api/media/...">
+                        </div>
+                        <label class="check-row">
+                            <input type="checkbox" id="display-countdown">
+                            <span>Show countdown on this display (for welcome/start)</span>
+                        </label>
+                    </div>
+                    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px">
+                        <button class="cta" id="display-push"><span>Push To Scoreboard</span></button>
+                        <button class="cta ghost" id="display-leaderboard"><span>Return To Leaderboard</span></button>
+                    </div>
+                    <div class="display-preview" id="display-preview" style="display:none">
+                        <div class="preview-label">Current Display</div>
+                        <div class="preview-body" id="display-preview-body"></div>
+                    </div>
+                </div>
+            </section>
+
             <section id="tab-qr" class="tab">
                 <div class="panel qr-panel">
                     <div class="panel-head-row center">
@@ -180,7 +233,6 @@
                     <div class="table-wrap" id="voters-table"></div>
                 </div>
             </section>
-
         </main>
     </div>
 
@@ -210,6 +262,6 @@
     </div>
 
     <script src="/vendor/qrcode.min.js"></script>
-    <script src="/cms/app.js?v=6"></script>
+    <script src="/cms/app.js?v=8"></script>
 </body>
 </html>
