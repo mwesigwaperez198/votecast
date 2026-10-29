@@ -120,11 +120,11 @@ async def admin_cast_vote(vote_req: schemas.AdminVoteRequest, request: Request, 
     
     pts = config.settings.VOTE_POINTS_ADMIN
     for _ in range(pts):
-        vote_hash = helpers.generate_vote_hash(0, contestant.id, "admin", f"{datetime.utcnow().isoformat()}-{_}")
+        vote_hash = helpers.generate_vote_hash(0, contestant.id, "audience", f"{datetime.utcnow().isoformat()}-{_}")
         ledger_entry = models.VoteLedger(
             voter_id=None,
             contestant_id=contestant.id,
-            voter_type="admin",
+            voter_type="audience",
             points=1,
             ip_address=request.client.host if request.client else None,
             user_agent=request.headers.get("user-agent"),
@@ -132,15 +132,16 @@ async def admin_cast_vote(vote_req: schemas.AdminVoteRequest, request: Request, 
         )
         db.add(ledger_entry)
     
-    contestant.admin_votes_count += 1  # count as 1 admin action = represents 3 people
+    contestant.admin_votes_count += 1  # one admin action
+    contestant.votes_count += pts  # counted as 3 audience votes
     contestant.points_total += pts
     
     db.commit()
     
     log_entry = models.LogEntry(
         log_type="vote",
-        message=f"Admin vote cast ({pts} pts) for {contestant.name}",
-        data=json.dumps({"contestant_id": contestant.id, "points": pts, "voter_type": "admin", "vote_count": contestant.admin_votes_count})
+        message=f"Admin vote cast ({pts} pts, counted as {pts} audience votes) for {contestant.name}",
+        data=json.dumps({"contestant_id": contestant.id, "points": pts, "voter_type": "audience", "vote_count": contestant.admin_votes_count})
     )
     db.add(log_entry)
     db.commit()

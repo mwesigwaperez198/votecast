@@ -1,4 +1,4 @@
-# AGENTS.md — VoteCast (DA_VELA Fashions) | Novara Technologies Limited
+# AGENTS.md — VoteCast (DA-VELA HOUSE OF ART) | Novara Technologies Limited
 
 ## Developer Bio
 - **Name:** Mwesigwa Perez
@@ -13,7 +13,7 @@
 - **Repo:** https://github.com/mwesigwaperez198/votecast.git
 
 ## Project Overview
-**Web-App Live Audience Voting & Scoreboard** for DA_VELA Fashions Fashion Models Event.
+**Web-App Live Audience Voting & Scoreboard** for DA-VELA HOUSE OF ART Fashion Models Event.
 - Audience uses their own phones (app-less via QR) to vote
 - Admin/CMS controls everything (contestants/profiles, start session countdown, end/runway ended, declare winner)
 - Judges/admin in CMS can vote too (each vote = 3 points, unlimited)

@@ -13,7 +13,7 @@
    - `ADMIN_USERNAME` - Your admin username
    - `ADMIN_PASSWORD` - Your admin password
    - `CORS_ORIGINS` - `*` or your domain
-   - `EVENT_NAME` - `DA_VELA Fashions`
+   - `EVENT_NAME` - `DA-VELA HOUSE OF ART`
    - `ENVIRONMENT` - `production`
 
 ### Frontend

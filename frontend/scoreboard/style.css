@@ -275,38 +275,81 @@ body {
     color: var(--text-dim);
 }
 
+.cd-message {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    max-width: 900px;
+    padding: 0 20px;
+    text-align: center;
+    z-index: 2;
+}
+
+.cd-kicker {
+    text-transform: uppercase;
+    letter-spacing: 0.7em;
+    font-size: clamp(9px, 1.6vw, 12px);
+    color: var(--gold);
+}
+
+.cd-headline {
+    font-family: "Cormorant", serif;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    font-weight: 600;
+    font-size: clamp(20px, 4.4vw, 46px);
+    line-height: 1.08;
+}
+
+.cd-tagline {
+    text-transform: uppercase;
+    letter-spacing: 0.5em;
+    font-size: clamp(8px, 1.4vw, 11px);
+    color: var(--text-sub);
+}
+
 .board {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 14px;
     max-width: 1180px;
     margin: 0 auto;
     width: 100%;
 }
 
-.lb {
+.empty {
+    text-align: center;
+    padding: 60px 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.4em;
+    font-size: 11px;
+    color: var(--text-dim);
+}
+
+.row {
     display: grid;
-    grid-template-columns: 90px 110px 1fr auto auto;
+    grid-template-columns: 64px 86px minmax(0, 1fr) auto;
     align-items: center;
-    gap: 28px;
-    padding: clamp(18px, 4vw, 26px) clamp(24px, 6vw, 42px);
+    gap: clamp(14px, 3vw, 28px);
+    padding: clamp(14px, 3vw, 22px) clamp(16px, 4vw, 36px);
     border: 1px solid var(--line);
     background: radial-gradient(140% 140% at 0% 50%, rgba(15,124,62,0.12) 0%, transparent 70%);
     position: relative;
-    animation: lbIn 0.6s ease both;
+    animation: lbIn 0.5s ease both;
 }
 
 @keyframes lbIn {
-    from { opacity: 0; transform: translateY(10px); }
+    from { opacity: 0; transform: translateY(8px); }
     to { opacity: 1; transform: translateY(0); }
 }
 
-.lb.first {
-    border-color: rgba(185,160,108,0.8);
+.row.crown {
+    border-color: rgba(185,160,108,0.75);
     background: radial-gradient(140% 140% at 0% 50%, rgba(185,160,108,0.18) 0%, transparent 70%);
 }
 
-.lb.first::before {
+.row.crown::before {
     content: "";
     position: absolute;
     left: 0;
@@ -316,54 +359,90 @@ body {
     background: linear-gradient(180deg, var(--gold), rgba(185,160,108,0.4));
 }
 
-.lb-rank {
+.rank {
     font-family: "Cormorant", serif;
-    font-size: clamp(38px, 6vw, 56px);
+    font-size: clamp(30px, 5vw, 48px);
     text-align: center;
+    color: var(--text-dim);
 }
 
-.lb.first .lb-rank { color: var(--gold); }
+.row.crown .rank { color: var(--gold); }
 
-.lb-photo {
+.ph {
     width: 86px;
     height: 86px;
     border-radius: 50%;
-    object-fit: cover;
+    overflow: hidden;
     border: 1px solid rgba(248,247,244,0.24);
+    background: linear-gradient(160deg, #0b3d23, #050805);
 }
 
-.lb.first .lb-photo { border-color: var(--gold); }
+.row.crown .ph { border-color: var(--gold); }
 
-.lb-info { display: flex; flex-direction: column; gap: 6px; }
-.lb-name {
-    text-transform: uppercase;
-    letter-spacing: 0.32em;
-    font-size: clamp(16px, 2.4vw, 24px);
+.ph img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
 }
 
-.lb-meta {
+.info { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+
+.name {
     text-transform: uppercase;
-    letter-spacing: 0.32em;
-    font-size: 10px;
+    letter-spacing: 0.28em;
+    font-size: clamp(15px, 2.2vw, 22px);
+    overflow-wrap: anywhere;
+}
+
+.stage {
+    text-transform: uppercase;
+    letter-spacing: 0.3em;
+    font-size: 9px;
     color: var(--text-dim);
 }
 
-.lb-an {
+.bar {
+    margin-top: 6px;
+    height: 4px;
+    width: 100%;
+    max-width: 420px;
+    background: rgba(248,247,244,0.1);
+    overflow: hidden;
+}
+
+.bar span {
+    display: block;
+    height: 100%;
+    background: linear-gradient(90deg, var(--green), var(--gold));
+    transition: width 0.6s ease;
+}
+
+.metrics {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
     text-align: right;
-    text-transform: uppercase;
-    letter-spacing: 0.32em;
-    font-size: 10px;
-    color: var(--text-dim);
+    min-width: 96px;
 }
 
-.lb-pts {
+.pts {
     font-family: "Cormorant", serif;
-    font-size: clamp(44px, 8vw, 68px);
-    text-align: right;
-    min-width: 110px;
+    font-size: clamp(30px, 5.4vw, 52px);
+    line-height: 1;
+    white-space: nowrap;
 }
 
-.lb.first .lb-pts { color: var(--gold); }
+.row.crown .pts { color: var(--gold); }
+
+.sub {
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 8px;
+    color: var(--text-dim);
+    white-space: nowrap;
+}
 
 .sb-foot {
     text-align: center;
@@ -375,9 +454,48 @@ body {
     border-top: 1px solid rgba(248,247,244,0.06);
 }
 
+.win {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 24px 16px;
+}
+
+.win-inner {
+    max-height: none;
+    flex-shrink: 0;
+}
+
 @media (max-width: 920px) {
-    .lb {
-        grid-template-columns: 60px 80px 1fr auto;
+    .row { grid-template-columns: 44px 62px minmax(0, 1fr) auto; gap: 12px; }
+    .ph { width: 62px; height: 62px; }
+    .sb-head { flex-wrap: wrap; gap: 12px; }
+}
+
+@media (max-width: 600px) {
+    .sb-main { justify-content: flex-start; gap: 20px; }
+    .row { grid-template-columns: 34px 52px minmax(0, 1fr); align-items: center; }
+    .ph { width: 52px; height: 52px; }
+    .metrics {
+        grid-column: 2 / -1;
+        flex-direction: row;
+        align-items: baseline;
+        justify-content: flex-start;
+        gap: 10px;
+        min-width: 0;
     }
-    .lb-an { display: none; }
+    .pts { font-size: 26px; }
+    .sub { white-space: normal; }
+    .rank { font-size: 26px; }
+    .name { font-size: 13px; letter-spacing: 0.2em; }
+    .bar { max-width: none; }
+    .cd-message { gap: 8px; }
+    .cd-ring { width: min(78vw, 320px); height: min(78vw, 320px); }
+    .cd-num { font-size: clamp(120px, 46vw, 220px); }
+    .win-photo { width: 150px; height: 150px; }
+    .win-name { font-size: clamp(30px, 9vw, 48px); letter-spacing: 0.28em; }
+    .win-grid { gap: 18px; margin-top: 16px; }
+    .win-val { font-size: clamp(34px, 9vw, 52px); }
+    .win-lab { font-size: 8px; }
+    .sb-brand-text { line-height: 1; }
+    .sb-name { letter-spacing: 0.4em; }
 }

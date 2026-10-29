@@ -3,23 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DA_VELA Fashions | Live Voting</title>
+    <meta name="theme-color" content="#0b3d23">
+    <title>DA-VELA HOUSE OF ART | Live Voting</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600;700&family=Cormorant:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/voter/style.css?v=2">
+    <link rel="stylesheet" href="/voter/style.css?v=5">
 </head>
 <body>
     <div class="noise"></div>
     <div class="vignette"></div>
-    
+
     <header class="topbar">
         <div class="topbar-inner">
             <div class="logo">
                 <span class="logo-mark">DV</span>
                 <div class="logo-text">
-                    <span class="logo-name">DA_VELA</span>
-                    <span class="logo-sub">FASHIONS</span>
+                    <span class="logo-name">DA-VELA</span>
+                    <span class="logo-sub">HOUSE OF ART</span>
                 </div>
             </div>
             <div class="live-pill">
@@ -71,34 +72,53 @@
                 <div class="voter-chip" id="voter-chip"></div>
             </div>
             <div class="ballot-grid" id="ballot-grid"></div>
-            <div class="gallery" id="gallery" aria-label="Event gallery"></div>
             <div class="done-state" id="done-state" style="display:none">
                 <div class="done-ring">
                     <svg width="42" height="42" viewBox="0 0 42 42" fill="none"><path d="M12.25 21L18.375 27.125L29.75 15.75" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 </div>
                 <h3>Vote Recorded</h3>
-                <p>Thank you for being part of DA_VELA Fashions</p>
+                <p>Thank you for being part of DA-VELA HOUSE OF ART</p>
             </div>
+            <div class="gallery-head">
+                <div class="view-kicker">On The Runway</div>
+                <h2 class="view-title">Gallery</h2>
+            </div>
+            <div class="gallery" id="gallery" aria-label="Event gallery"></div>
         </section>
 
         <section id="closed-section" class="view">
             <div class="state-card">
                 <div class="state-dot"></div>
-                <h2>Voting Closed</h2>
+                <h2 id="closed-title">Voting Closed</h2>
                 <p id="closed-text">The runway session will begin shortly</p>
-                <div id="countdown-display" style="display:none;margin-top:18px;font-size:clamp(48px,12vw,120px);font-family:Cormorant,serif;font-weight:700"></div>
+                <div id="countdown-display" class="countdown-display" style="display:none"></div>
             </div>
         </section>
     </main>
 
     <footer class="footer">
-        <div class="footer-brand">Crafted by Novara Technologies Limited</div>
+        <div class="footer-brand">DA-VELA HOUSE OF ART &middot; Crafted by Novara Technologies Limited</div>
         <div class="footer-meta">
             <span>mwesigwagershom7@gmail.com</span>
             <span>+256 765866555</span>
         </div>
     </footer>
 
-    <script src="/voter/app.js?v=3"></script>
+    <div id="profile-modal" class="profile-modal" aria-hidden="true">
+        <div class="profile-backdrop" data-close-profile></div>
+        <div class="profile-card">
+            <button class="profile-close" type="button" data-close-profile aria-label="Close">&times;</button>
+            <div class="profile-media" id="profile-media"></div>
+            <div class="profile-body">
+                <div class="profile-kicker" id="profile-kicker"></div>
+                <h3 class="profile-name" id="profile-name"></h3>
+                <p class="profile-bio" id="profile-bio"></p>
+                <div class="profile-gallery" id="profile-gallery"></div>
+                <button class="cta" id="profile-vote" type="button"><span>Vote For This Model</span></button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/voter/app.js?v=5"></script>
 </body>
 </html>

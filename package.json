@@ -1,0 +1,13 @@
+{
+  "name": "votecast",
+  "version": "1.0.0",
+  "private": true,
+  "description": "DA-VELA HOUSE OF ART live audience voting and scoreboard",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^4.44.0"
+  }
+}

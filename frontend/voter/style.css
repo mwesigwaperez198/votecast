@@ -604,3 +604,157 @@ body {
         letter-spacing: 0.12em;
     }
 }
+
+/* --- Voting flow additions --- */
+.gallery-head {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 6px;
+}
+
+.countdown-display {
+    font-family: "Cormorant", serif;
+    font-size: clamp(64px, 18vw, 160px);
+    font-weight: 700;
+    line-height: 0.95;
+    color: var(--gold);
+    letter-spacing: 0.04em;
+}
+
+.countdown-display::after {
+    content: attr(data-label);
+    display: block;
+    margin-top: 10px;
+    font-family: "Jost", sans-serif;
+    font-size: 9px;
+    letter-spacing: 0.6em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+}
+
+.model-media img,
+.gallery-item img,
+.profile-media img {
+    background: linear-gradient(160deg, #0b3d23, #050805);
+}
+
+/* --- Model profile --- */
+.profile-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 500;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+}
+
+.profile-modal.active { display: flex; }
+
+.profile-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.88);
+    backdrop-filter: blur(6px);
+}
+
+.profile-card {
+    position: relative;
+    width: min(820px, 100%);
+    max-height: 92dvh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    background: linear-gradient(160deg, rgba(11, 61, 35, 0.6), rgba(5, 8, 5, 0.98));
+    border: 1px solid rgba(185, 160, 108, 0.35);
+    box-shadow: 0 40px 120px -60px #000;
+}
+
+.profile-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 2;
+    width: 38px;
+    height: 38px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    border: 1px solid rgba(248, 247, 244, 0.35);
+    background: rgba(0, 0, 0, 0.55);
+    color: var(--text);
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.profile-media {
+    min-height: 280px;
+    max-height: 78dvh;
+    overflow: hidden;
+}
+
+.profile-media img {
+    width: 100%;
+    height: 100%;
+    min-height: 280px;
+    object-fit: cover;
+    display: block;
+}
+
+.profile-body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: clamp(22px, 5vw, 36px);
+}
+
+.profile-kicker {
+    text-transform: uppercase;
+    letter-spacing: 0.5em;
+    font-size: 9px;
+    color: var(--gold);
+}
+
+.profile-name {
+    font-family: "Cormorant", serif;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-weight: 500;
+    font-size: clamp(24px, 5vw, 38px);
+    line-height: 1.05;
+}
+
+.profile-bio {
+    color: var(--text-sub);
+    font-size: 14px;
+}
+
+.profile-gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(62px, 1fr));
+    gap: 8px;
+    margin: 4px 0 8px;
+}
+
+.profile-gallery img {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    cursor: pointer;
+    border: 1px solid var(--line);
+}
+
+.profile-gallery img:hover { border-color: var(--gold); }
+
+@media (max-width: 680px) {
+    .profile-card { grid-template-columns: 1fr; }
+    .profile-media { max-height: 44dvh; min-height: 220px; }
+    .profile-media img { min-height: 220px; }
+    .ballot-grid { grid-template-columns: 1fr; }
+    .model-media { height: clamp(240px, 72vw, 360px); }
+    .gallery { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
+    .gallery-item img { height: clamp(170px, 54vw, 240px); }
+}

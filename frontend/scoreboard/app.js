@@ -1,9 +1,17 @@
 const API_BASE = window.location.origin;
+const PLACEHOLDER = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="600" height="800" viewBox="0 0 600 800">' +
+    '<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0b3d23"/><stop offset="1" stop-color="#050805"/></linearGradient></defs>' +
+    '<rect width="600" height="800" fill="url(#g)"/>' +
+    '<text x="300" y="410" font-family="Georgia,serif" font-size="84" fill="#b9a06c" text-anchor="middle" letter-spacing="14">DV</text>' +
+    '</svg>'
+);
+
 const board = document.getElementById('board');
-const sbState = document.getElementById('sb-state');
 const cd = document.getElementById('cd');
 const cdNum = document.getElementById('cd-num');
 const cdLab = document.getElementById('cd-lab');
+const cdMessage = document.getElementById('cd-message');
 const win = document.getElementById('win');
 const winPhoto = document.getElementById('win-photo');
 const winName = document.getElementById('win-name');
@@ -11,89 +19,150 @@ const winStage = document.getElementById('win-stage');
 const winPts = document.getElementById('win-pts');
 const winVoters = document.getElementById('win-voters');
 const winPct = document.getElementById('win-pct');
+const stateBadge = document.getElementById('sb-state');
 
-let last = '';
-let lastCount = -1;
+const DEFAULT_MESSAGE = cdMessage ? cdMessage.innerHTML : '';
+let lastBoardSig = '';
+let lastWinSig = '';
+let lastStatus = '';
 
-async function load() {
-    try {
-        const res = await fetch(`${API_BASE}/api/scoreboard`, { cache: 'no-store' });
-        const data = await res.json();
-        const st = data.state.status;
-        if (st !== last) {
-            last = st;
-            if (st === 'voting') sbState.textContent = 'VOTING OPEN';
-            else if (st === 'starting') sbState.textContent = 'STARTING';
-            else if (st === 'runway_ended') sbState.textContent = 'RUNWAY ENDED';
-            else if (st === 'ended') sbState.textContent = 'CONCLUDED';
-            else if (st === 'idle') sbState.textContent = 'AWAITING';
-            else sbState.textContent = st.toUpperCase();
-        }
-
-        if (data.state.countdown_active || (st === 'starting' || st === 'runway_ended')) {
-            cd.classList.add('active');
-            if (data.state.countdown_value !== lastCount) {
-                lastCount = data.state.countdown_value;
-                cdNum.style.animation = 'none';
-                void cdNum.offsetWidth;
-                cdNum.style.animation = 'cdPulse 0.6s ease';
-            }
-            cdNum.textContent = data.state.countdown_value;
-            cdLab.textContent = st === 'runway_ended' ? 'DECLARING WINNER' : (st === 'starting' ? 'GET READY' : 'STARTING');
-        } else {
-            cd.classList.remove('active');
-            lastCount = -1;
-        }
-
-        if (data.state.winner_declared && data.winner) {
-            win.classList.add('active');
-            const wgal = data.winner.gallery && data.winner.gallery.length ? data.winner.gallery : (data.winner.photo_url ? [data.winner.photo_url] : []);
-            winPhoto.src = wgal[0] || 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?q=80&w=800&auto=format&fit=crop';
-            winPhoto.dataset.gallery = JSON.stringify(wgal).replace(/'/g, "&apos;");
-            winPhoto.onclick = function(){ showModelGallery(this); };
-            winName.textContent = data.winner.name;
-            winStage.textContent = data.winner.stage_name || '';
-            winPts.textContent = Math.round(data.winner.points_total);
-            winVoters.textContent = data.stats.total_voters;
-            const p = data.stats.total_voters > 0 ? Math.round((data.winner.points_total / (data.stats.total_voters * 3)) * 100) : 0;
-            winPct.textContent = p + '%';
-        } else {
-            win.classList.remove('active');
-        }
-
-        board.innerHTML = '';
-        data.contestants.forEach((c, idx) => {
-            const row = document.createElement('article');
-            row.className = `lb ${idx === 0 && data.contestants.length ? 'first' : ''}`;
-            const gallery = c.gallery && c.gallery.length ? c.gallery : (c.photo_url ? [c.photo_url] : []);
-            const firstImg = gallery[0] || 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?q=80&w=400&auto=format&fit=crop';
-            row.innerHTML = `
-                <div class="lb-rank">${idx + 1}</div>
-                <img class="lb-photo" src="${firstImg}" data-gallery='${JSON.stringify(gallery).replace(/'/g, "&apos;")}' onclick="showModelGallery(this)" onerror="this.src='https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?q=80&w=400&auto=format&fit=crop'">
-                <div class="lb-info">
-                    <div class="lb-name">${c.name}</div>
-                    <div class="lb-meta">${c.stage_name || c.category || 'Fashion Model'} • Audience ${Math.round(c.points_total)}</div>
-                </div>
-                <div class="lb-an">${c.percentage}% Analysis</div>
-                <div class="lb-pts">${Math.round(c.points_total)}</div>
-            `;
-            board.appendChild(row);
-        });
-    } catch (e) {}
+function imageOrPlaceholder(url) {
+    return url && String(url).trim() ? url : PLACEHOLDER;
 }
 
-window.showModelGallery = function(imgEl) {
-    try {
-        const gallery = JSON.parse(imgEl.dataset.gallery || '[]');
-        if (!gallery.length) return;
-        let html = '<div id="mg-modal" style="position:fixed;inset:0;background:rgba(0,0,0,0.92);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px"><div style="max-width:900px;width:100%;text-align:center"><button onclick="document.getElementById(\'mg-modal\').remove()" style="margin-bottom:12px;background:none;border:1px solid rgba(255,255,255,0.4);color:#fff;padding:8px 14px;border-radius:999px;cursor:pointer">Close</button><div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center">';
-        gallery.forEach(g => {
-            html += `<img src="${g}" style="max-width:280px;max-height:70vh;border-radius:12px;object-fit:cover" onerror="this.style.display='none'">`;
-        });
-        html += '</div></div></div>';
-        document.body.insertAdjacentHTML('beforeend', html);
-    } catch(e) {}
-};
+function attachFallback(img) {
+    img.addEventListener('error', () => {
+        if (img.dataset.fallback === '1') return;
+        img.dataset.fallback = '1';
+        img.src = PLACEHOLDER;
+    });
+}
 
-load();
-setInterval(load, 1000);
+function setCountdown(active, value, status) {
+    if (!cd) return;
+    if (!active) {
+        cd.classList.remove('active');
+        return;
+    }
+    cd.classList.add('active');
+    cdNum.textContent = String(value);
+    const declaring = status === 'runway_ended';
+    cdLab.textContent = declaring ? 'DECLARING WINNER' : 'GET READY';
+    if (declaring) {
+        cdMessage.innerHTML = '<span class="cd-kicker">DA-VELA HOUSE OF ART</span>' +
+            '<span class="cd-headline">THE WINNER IS ABOUT TO BE DECLARED</span>' +
+            '<span class="cd-tagline">STAY WITH US</span>';
+    } else if (cdMessage.innerHTML !== DEFAULT_MESSAGE) {
+        cdMessage.innerHTML = DEFAULT_MESSAGE;
+    }
+}
+
+function renderBoard(contestants) {
+    const sig = JSON.stringify(contestants.map((c) => [c.id, c.points_total, c.votes_count, c.percentage, c.photo_url]));
+    if (sig === lastBoardSig) return;
+    lastBoardSig = sig;
+
+    board.innerHTML = '';
+    if (!contestants.length) {
+        board.innerHTML = '<div class="empty">The runway lineup will appear here</div>';
+        return;
+    }
+
+    const max = Math.max(...contestants.map((c) => c.points_total), 1);
+    const leader = contestants[0];
+
+    contestants.forEach((c, idx) => {
+        const row = document.createElement('article');
+        row.className = 'row' + (idx === 0 ? ' lead' : '');
+        row.innerHTML = `
+            <div class="rank"></div>
+            <div class="ph"><img loading="lazy" decoding="async" alt=""></div>
+            <div class="info">
+                <div class="name"></div>
+                <div class="stage"></div>
+                <div class="bar"><span></span></div>
+            </div>
+            <div class="metrics">
+                <div class="pts"></div>
+                <div class="sub"></div>
+            </div>
+        `;
+        row.querySelector('.rank').textContent = String(idx + 1).padStart(2, '0');
+        const img = row.querySelector('img');
+        img.src = imageOrPlaceholder(c.photo_url);
+        img.alt = c.name || 'Model';
+        attachFallback(img);
+        row.querySelector('.name').textContent = c.name || 'Model';
+        row.querySelector('.stage').textContent = c.stage_name || c.category || 'Fashion Model';
+        row.querySelector('.bar span').style.width = Math.max(4, (c.points_total / max) * 100) + '%';
+        row.querySelector('.pts').textContent = `${c.points_total} pts`;
+        row.querySelector('.sub').textContent = `${c.percentage}% · ${c.votes_count} audience votes`;
+        board.appendChild(row);
+    });
+
+    if (leader && leader.points_total > 0) {
+        board.firstElementChild.classList.add('crown');
+    }
+}
+
+function renderWinner(winner, stats) {
+    if (!winner) {
+        win.classList.remove('active');
+        lastWinSig = '';
+        return;
+    }
+    const sig = [winner.id, winner.points_total, winner.votes_count, winner.percentage, stats.total_voters].join('|');
+    if (sig === lastWinSig) {
+        win.classList.add('active');
+        return;
+    }
+    lastWinSig = sig;
+    winPhoto.src = imageOrPlaceholder(winner.photo_url);
+    winPhoto.alt = winner.name || 'Winner';
+    winName.textContent = winner.name || 'Winner';
+    winStage.textContent = winner.stage_name || 'DA-VELA HOUSE OF ART';
+    winPts.textContent = String(winner.points_total || 0);
+    winVoters.textContent = String(winner.votes_count || 0);
+    winPct.textContent = `${winner.percentage || 0}%`;
+    win.classList.add('active');
+}
+
+async function poll() {
+    try {
+        const res = await fetch(`${API_BASE}/api/scoreboard`, { cache: 'no-store' });
+        if (!res.ok) throw new Error('scoreboard');
+        const data = await res.json();
+        const state = data.state || {};
+        const status = state.status || 'idle';
+        const countdown = state.countdown_active && state.countdown_value > 0;
+
+        stateBadge.textContent = status === 'voting' ? 'VOTING LIVE'
+            : status === 'starting' ? 'STARTING'
+            : status === 'runway_ended' ? 'DECLARING'
+            : status === 'ended' ? 'CLOSED'
+            : 'AWAITING';
+
+        if (state.winner_declared && data.winner) {
+            setCountdown(false);
+            win.classList.remove('active');
+            renderWinner(data.winner, data.stats || {});
+            board.style.display = 'none';
+        } else {
+            win.classList.remove('active');
+            board.style.display = '';
+            renderWinner(null, {});
+            setCountdown(countdown, state.countdown_value, status);
+            renderBoard(data.contestants || []);
+        }
+
+        lastStatus = status;
+    } catch (e) {
+        if (lastStatus !== 'offline') {
+            stateBadge.textContent = 'RECONNECTING';
+        }
+        lastStatus = 'offline';
+    }
+}
+
+poll();
+setInterval(poll, 1000);

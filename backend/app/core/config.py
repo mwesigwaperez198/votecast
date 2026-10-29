@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     CORS_ORIGINS: str = "*"
     ADMIN_USERNAME: str = "admin"
     ADMIN_PASSWORD: str = "admin123"
-    EVENT_NAME: str = "DA_VELA Fashions"
+    EVENT_NAME: str = "DA-VELA HOUSE OF ART"
     VOTE_POINTS_NORMAL: int = 1
     VOTE_POINTS_ADMIN: int = 3
     

@@ -658,3 +658,19 @@ td.right { text-align: right; }
         flex-direction: row;
     }
 }
+
+.empty {
+    padding: 46px 20px;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.32em;
+    font-size: 10px;
+    color: var(--text-dim);
+}
+
+@media (max-width: 640px) {
+    .content { padding: 20px 16px 40px; }
+    .content-header { flex-wrap: wrap; gap: 12px; }
+    .table-wrap table { min-width: 560px; }
+    .split { grid-template-columns: 1fr; }
+}

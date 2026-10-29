@@ -13,7 +13,7 @@ import mimetypes
 from typing import List
 from sqlalchemy.orm import Session
 
-app = FastAPI(title="VoteCast API", description="DA_VELA Fashions Live Voting System by Novara", version="1.0.0")
+app = FastAPI(title="VoteCast API", description="DA-VELA HOUSE OF ART Live Voting System by Novara", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -266,7 +266,7 @@ async def root():
     voter_index = os.path.join(frontend_dir, "voter", "index.html")
     if os.path.exists(voter_index):
         return FileResponse(voter_index, media_type="text/html")
-    return {"message": "VoteCast API - DA_VELA Fashions"}
+    return {"message": "VoteCast API - DA-VELA HOUSE OF ART"}
 
 
 @app.get("/voter")

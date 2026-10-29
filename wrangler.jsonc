@@ -1,0 +1,33 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "votecast",
+  "main": "worker/index.js",
+  "compatibility_date": "2026-10-28",
+  "assets": {
+    "directory": "./frontend",
+    "binding": "ASSETS",
+    "run_worker_first": true
+  },
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "STORE",
+        "class_name": "Store"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["Store"]
+    }
+  ],
+  "vars": {
+    "EVENT_NAME": "DA-VELA HOUSE OF ART",
+    "ADMIN_USERNAME": "admin",
+    "ADMIN_PASSWORD": "admin123"
+  },
+  "observability": {
+    "enabled": true
+  }
+}

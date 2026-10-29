@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DA_VELA Fashions | Control Room</title>
+    <title>DA-VELA HOUSE OF ART | Control Room</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600;700&family=Cormorant:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/cms/style.css?v=2">
+    <link rel="stylesheet" href="/cms/style.css?v=6">
 </head>
 <body>
     <div class="noise"></div>
@@ -19,8 +19,8 @@
                 <div class="brand">
                     <span class="brand-mark">DV</span>
                     <div class="brand-text">
-                        <span class="brand-name">DA_VELA</span>
-                        <span class="brand-sub">FASHIONS</span>
+                        <span class="brand-name">DA-VELA</span>
+                        <span class="brand-sub">HOUSE OF ART</span>
                     </div>
                 </div>
                 <div class="sidebar-kicker">Control Room</div>
@@ -41,7 +41,7 @@
         <main class="content">
             <header class="content-header">
                 <div>
-                    <div class="page-kicker">DA_VELA Fashions</div>
+                    <div class="page-kicker">DA-VELA HOUSE OF ART</div>
                     <h1 class="page-title" id="page-title">Overview</h1>
                 </div>
                 <div class="header-actions">
@@ -133,8 +133,8 @@
                     <div class="panel">
                         <div class="panel-head-row">
                             <div>
-                                <h2>Judges / Admin</h2>
-                                <p>Each vote carries 3 points • Unlimited</p>
+                                <h2>Admin Voting</h2>
+                                <p>Each admin vote = 3 audience votes • Unlimited</p>
                             </div>
                         </div>
                         <div class="judge-list" id="admin-vote-list"></div>
@@ -181,27 +181,6 @@
                 </div>
             </section>
 
-            <section id="tab-settings" class="tab">
-                <div class="panel">
-                    <div class="panel-head-row">
-                        <div>
-                            <h2>Logs</h2>
-                            <p>All audience entries captured</p>
-                        </div>
-                        <button class="ghost-btn" id="refresh-logs">Refresh</button>
-                    </div>
-                    <div class="table-wrap" id="logs-table"></div>
-                </div>
-                <div class="panel" style="margin-top:22px">
-                    <div class="panel-head-row">
-                        <div>
-                            <h2>Voter Directory</h2>
-                            <p>Name, Email, Telephone &amp; Status</p>
-                        </div>
-                    </div>
-                    <div class="table-wrap" id="voters-table"></div>
-                </div>
-            </section>
         </main>
     </div>
 
@@ -230,6 +209,7 @@
         </div>
     </div>
 
-    <script src="/cms/app.js?v=2"></script>
+    <script src="/vendor/qrcode.min.js"></script>
+    <script src="/cms/app.js?v=6"></script>
 </body>
 </html>
