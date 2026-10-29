@@ -24,8 +24,8 @@
   ],
   "vars": {
     "EVENT_NAME": "DA-VELA HOUSE OF ART",
-    "ADMIN_USERNAME": "admin",
-    "ADMIN_PASSWORD": "admin123"
+    "ADMIN_USERNAME": "Perez256",
+    "ADMIN_PASSWORD": "novara123"
   },
   "observability": {
     "enabled": true
