@@ -212,11 +212,11 @@ export default {
     }
 
     const mapped = PAGE_ROUTES[url.pathname];
-    if (mapped && (request.method === 'GET' || request.method === 'HEAD')) {
-      const target = new URL(mapped, url.origin);
-      return env.ASSETS.fetch(new Request(target.toString(), request));
-    }
+  if (mapped && (request.method === 'GET' || request.method === 'HEAD')) {
+    url.pathname = mapped;
+    return env.ASSETS.fetch(new Request(url.toString(), request));
+  }
 
-    return env.ASSETS.fetch(request);
+  return env.ASSETS.fetch(request);
   }
 };
