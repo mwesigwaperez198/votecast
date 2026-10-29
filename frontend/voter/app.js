@@ -73,6 +73,23 @@ function setCountdown(value, label) {
     countdownDisplay.dataset.label = label || '';
 }
 
+let galleryShuffleTimer = null;
+
+function shuffleGallery() {
+    if (!gallery) return;
+    const items = Array.from(gallery.querySelectorAll('.gallery-item'));
+    if (items.length <= 1) return;
+    for (let i = items.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        gallery.appendChild(items[j]);
+    }
+}
+
+function startGalleryShuffle() {
+    if (galleryShuffleTimer) clearInterval(galleryShuffleTimer);
+    galleryShuffleTimer = setInterval(shuffleGallery, 6500);
+}
+
 async function loadGallery(force) {
     if (!gallery) return;
     if (galleryLoaded && !force) return;
@@ -86,25 +103,25 @@ async function loadGallery(force) {
             return;
         }
         gallery.innerHTML = '';
-        items.slice(0, 30).forEach((item) => {
+        items.slice(0, 60).forEach((item) => {
             const card = document.createElement('article');
             card.className = 'gallery-item';
             card.innerHTML = `
                 <img loading="lazy" decoding="async" alt="">
-                <div class="gallery-meta"><strong></strong><span></span></div>
+                <div class="gallery-meta"><strong></strong><span>See more</span></div>
             `;
             const img = card.querySelector('img');
             img.src = imageOrPlaceholder(item.image_url);
             img.alt = item.name || 'Gallery image';
             attachFallback(img);
             card.querySelector('strong').textContent = item.name || 'DA-VELA Model';
-            card.querySelector('span').textContent = item.stage_name || item.category || 'Fashion Model';
             card.addEventListener('click', () => {
                 const model = contestantsCache.find((c) => c.id === item.contestant_id);
                 openProfile(model || item);
             });
             gallery.appendChild(card);
         });
+        shuffleGallery();
     } catch (e) {
         galleryLoaded = false;
     }
@@ -241,6 +258,14 @@ async function castVote(contestantId) {
         show(registerSection);
         return;
     }
+    if (voterInfo && voterInfo.has_voted) {
+        ballotGrid.innerHTML = '';
+        doneState.style.display = 'flex';
+        galleryLoaded = false;
+        await loadGallery(true);
+        shuffleGallery();
+        return;
+    }
     if (!confirm('Confirm your vote for this model?')) return;
     try {
         const res = await fetch(`${API_BASE}/api/vote/vote`, {
@@ -250,11 +275,15 @@ async function castVote(contestantId) {
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.detail || 'Vote failed');
-        voterInfo.has_voted = true;
+        voterInfo = { ...(voterInfo || {}), has_voted: true };
         localStorage.setItem('votecast_voter', JSON.stringify(voterInfo));
         ballotGrid.innerHTML = '';
         doneState.style.display = 'flex';
         votingLoaded = false;
+        galleryLoaded = false;
+        await loadGallery(true);
+        shuffleGallery();
+        startGalleryShuffle();
     } catch (err) {
         alert(err.message);
     }
@@ -297,10 +326,22 @@ async function route() {
                 lastStatus = status;
                 return;
             }
+            if (voterInfo.has_voted) {
+                ballotGrid.innerHTML = '';
+                doneState.style.display = 'flex';
+                if (voterChip) voterChip.textContent = String(voterInfo.name || '').toUpperCase();
+                show(voteSection);
+                await loadGallery(true);
+                shuffleGallery();
+                startGalleryShuffle();
+                lastStatus = status;
+                return;
+            }
             if (voterChip) voterChip.textContent = String(voterInfo.name || '').toUpperCase();
             show(voteSection);
             await loadBallot();
             await loadGallery();
+            startGalleryShuffle();
         } else {
             show(registerSection);
         }

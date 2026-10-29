@@ -638,3 +638,18 @@ body {
     .pill { font-size: 7px; }
     .overlay-title { letter-spacing: 0.12em; }
 }
+
+@media (min-width: 1600px) {
+    .sb-main { padding: clamp(40px, 6vw, 80px); }
+    .board-wrap { max-width: min(1800px, 96vw); }
+    .row { grid-template-columns: 64px 92px minmax(0,1fr) auto; padding: 18px 44px; }
+    .ph { width: 92px; height: 92px; }
+    .name { font-size: clamp(18px, 1.6vw, 28px); }
+    .pts { font-size: clamp(40px, 3.6vw, 72px); }
+}
+
+@media (min-width: 2000px) {
+    .board-wrap { max-width: min(2200px, 98vw); }
+    .row { grid-template-columns: 72px 104px minmax(0,1fr) auto; gap: 34px; }
+    .ph { width: 104px; height: 104px; }
+}
