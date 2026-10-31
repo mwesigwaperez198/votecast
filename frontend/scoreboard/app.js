@@ -157,7 +157,9 @@ function openLightbox(images, index) {
         const img = document.createElement('img');
         img.src = imageOrPlaceholder(src);
         img.alt = `${activeModel ? activeModel.name : 'Model'} photo ${i + 1}`;
+        img.loading = 'eager';
         img.decoding = 'async';
+        img.draggable = false;
         attachFallback(img);
         slide.appendChild(img);
         lbTrack.appendChild(slide);
@@ -181,6 +183,15 @@ function closeLightbox() {
     lightbox.setAttribute('aria-hidden', 'true');
     if (activeModel) showHero(activeImageIndex);
 }
+
+function realignLightbox() {
+    if (!lightbox || !lightbox.classList.contains('active') || !lbTrack) return;
+    const width = lbTrack.clientWidth || 1;
+    lbTrack.scrollLeft = activeImageIndex * width;
+}
+
+window.addEventListener('resize', realignLightbox);
+window.addEventListener('orientationchange', () => setTimeout(realignLightbox, 260));
 
 function stepLightbox(dir) {
     if (!lbTrack) return;
@@ -220,7 +231,127 @@ if (lbTrack) {
     });
 }
 
+/* --- Projection mode: full-screen, cursor auto-hide, screen wake lock --- */
+const projectionToggle = document.getElementById('projection-toggle');
+let projectionCursorTimer = 0;
+let projectionWakeLock = null;
+
+function projectionActive() {
+    return document.body.classList.contains('projection') || !!document.fullscreenElement;
+}
+
+function syncProjectionButton() {
+    if (!projectionToggle) return;
+    const on = projectionActive();
+    projectionToggle.textContent = on ? 'EXIT PROJECTION' : 'PROJECTION';
+    projectionToggle.setAttribute('aria-pressed', on ? 'true' : 'false');
+}
+
+function revealProjectionCursor() {
+    document.body.classList.remove('cursor-hidden');
+    clearTimeout(projectionCursorTimer);
+    if (document.body.classList.contains('projection')) {
+        projectionCursorTimer = setTimeout(() => {
+            document.body.classList.add('cursor-hidden');
+        }, 2200);
+    }
+}
+
+async function requestProjectionWakeLock() {
+    if (!('wakeLock' in navigator) || projectionWakeLock) return;
+    try {
+        projectionWakeLock = await navigator.wakeLock.request('screen');
+        projectionWakeLock.addEventListener('release', () => { projectionWakeLock = null; });
+    } catch (e) {
+        projectionWakeLock = null;
+    }
+}
+
+async function releaseProjectionWakeLock() {
+    if (!projectionWakeLock) return;
+    try { await projectionWakeLock.release(); } catch (e) {}
+    projectionWakeLock = null;
+}
+
+async function enterProjection() {
+    document.body.classList.add('projection');
+    revealProjectionCursor();
+    requestProjectionWakeLock();
+    if (!document.fullscreenElement) {
+        try {
+            await document.documentElement.requestFullscreen({ navigationUI: 'hide' });
+        } catch (e) {
+            try { await document.documentElement.requestFullscreen(); } catch (e2) {}
+        }
+    }
+    syncProjectionButton();
+}
+
+function exitProjection() {
+    if (document.fullscreenElement && document.exitFullscreen) {
+        document.exitFullscreen().catch(() => {});
+    }
+    document.body.classList.remove('projection', 'cursor-hidden');
+    clearTimeout(projectionCursorTimer);
+    releaseProjectionWakeLock();
+    syncProjectionButton();
+}
+
+function toggleProjection() {
+    if (projectionActive()) exitProjection();
+    else enterProjection();
+}
+
+if (projectionToggle) {
+    projectionToggle.addEventListener('click', toggleProjection);
+}
+
+document.addEventListener('fullscreenchange', () => {
+    if (document.fullscreenElement) {
+        document.body.classList.add('projection');
+        revealProjectionCursor();
+        requestProjectionWakeLock();
+    } else {
+        document.body.classList.remove('projection', 'cursor-hidden');
+        clearTimeout(projectionCursorTimer);
+        releaseProjectionWakeLock();
+    }
+    syncProjectionButton();
+});
+
+['mousemove', 'mousedown', 'touchstart', 'keydown'].forEach((evt) => {
+    document.addEventListener(evt, revealProjectionCursor, { passive: true });
+});
+
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && document.body.classList.contains('projection')) {
+        requestProjectionWakeLock();
+    }
+});
+
+const projectionParam = new URLSearchParams(window.location.search).get('projection');
+if (projectionParam === '1' || projectionParam === 'true') {
+    document.body.classList.add('projection');
+    revealProjectionCursor();
+    syncProjectionButton();
+    const startOnGesture = () => {
+        document.removeEventListener('pointerdown', startOnGesture);
+        enterProjection();
+    };
+    document.addEventListener('pointerdown', startOnGesture, { once: true });
+}
+syncProjectionButton();
+
 document.addEventListener('keydown', (e) => {
+    const targetTag = (e.target && e.target.tagName ? e.target.tagName : '').toLowerCase();
+    const typing = targetTag === 'input' || targetTag === 'textarea' || (e.target && e.target.isContentEditable);
+
+    if ((e.key === 'f' || e.key === 'F') && !typing && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        e.preventDefault();
+        toggleProjection();
+        return;
+    }
+
     if (lightbox && lightbox.classList.contains('active')) {
         if (e.key === 'Escape') closeLightbox();
         else if (e.key === 'ArrowLeft') {
@@ -234,6 +365,10 @@ document.addEventListener('keydown', (e) => {
     }
     if (modelModal && modelModal.classList.contains('active') && e.key === 'Escape') {
         closeModel();
+        return;
+    }
+    if (e.key === 'Escape' && document.body.classList.contains('projection')) {
+        exitProjection();
     }
 });
 
@@ -279,7 +414,7 @@ function renderBoard(contestants, stats) {
         row.className = 'row' + (idx === 0 ? ' crown' : '');
         row.innerHTML = `
             <div class="rank"></div>
-            <div class="ph"><img loading="lazy" decoding="async" alt=""></div>
+            <div class="ph"><img loading="eager" decoding="async" alt=""></div>
             <div class="info">
                 <div class="name"></div>
                 <div class="stage"></div>

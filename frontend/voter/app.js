@@ -74,7 +74,9 @@ function openLightbox(images, index) {
         const img = document.createElement('img');
         img.src = imageOrPlaceholder(src);
         img.alt = `${activeModelName || 'Model'} photo ${i + 1}`;
+        img.loading = 'eager';
         img.decoding = 'async';
+        img.draggable = false;
         attachFallback(img);
         slide.appendChild(img);
         lbTrack.appendChild(slide);
@@ -122,6 +124,15 @@ if (lbTrack) {
         });
     });
 }
+
+function realignLightbox() {
+    if (!lightbox || !lightbox.classList.contains('active') || !lbTrack) return;
+    const width = lbTrack.clientWidth || 1;
+    lbTrack.scrollLeft = activeImageIndex * width;
+}
+
+window.addEventListener('resize', realignLightbox);
+window.addEventListener('orientationchange', () => setTimeout(realignLightbox, 260));
 
 document.addEventListener('keydown', (e) => {
     if (lightbox && lightbox.classList.contains('active')) {
@@ -171,6 +182,8 @@ let galleryShuffleTimer = null;
 
 function shuffleGallery() {
     if (!gallery) return;
+    if (profileModal && profileModal.classList.contains('active')) return;
+    if (lightbox && lightbox.classList.contains('active')) return;
     const items = Array.from(gallery.querySelectorAll('.gallery-item'));
     if (items.length <= 1) return;
     for (let i = items.length - 1; i > 0; i--) {
@@ -201,7 +214,7 @@ async function loadGallery(force) {
             const card = document.createElement('article');
             card.className = 'gallery-item';
             card.innerHTML = `
-                <img loading="lazy" decoding="async" alt="">
+                <img loading="eager" decoding="async" alt="">
                 <div class="gallery-meta"><strong></strong><span>See more</span></div>
             `;
             const img = card.querySelector('img');
@@ -252,7 +265,7 @@ function openProfile(model) {
     profileGallery.innerHTML = '';
     profileImages.slice(0, 8).forEach((src, index) => {
         const thumb = document.createElement('img');
-        thumb.loading = 'lazy';
+        thumb.loading = 'eager';
         thumb.decoding = 'async';
         thumb.src = imageOrPlaceholder(src);
         thumb.alt = model.name || 'Gallery';
@@ -344,7 +357,7 @@ async function loadBallot(force) {
             const card = document.createElement('article');
             card.className = 'model-card';
             card.innerHTML = `
-                <div class="model-media"><img loading="lazy" decoding="async" alt=""></div>
+                <div class="model-media"><img loading="eager" decoding="async" alt=""></div>
                 <div class="model-body">
                     <div>
                         <div class="model-name"></div>
