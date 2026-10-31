@@ -170,7 +170,7 @@ async def public_qr(request: Request):
     import io
     import base64
     base_url = str(request.base_url).rstrip('/')
-    voter_url = f"{base_url}/voter"
+    voter_url = f"{base_url}/voter/"
     qr = qrcode.QRCode(version=1, box_size=10, border=5)
     qr.add_data(voter_url)
     qr.make(fit=True)
@@ -211,6 +211,7 @@ async def scoreboard(db: Session = Depends(get_db)):
             "name": c.name,
             "stage_name": c.stage_name,
             "category": c.category,
+            "bio": c.bio,
             "photo_url": c.photo_url,
             "gallery": gallery,
             "votes_count": c.votes_count,
@@ -237,7 +238,7 @@ async def scoreboard(db: Session = Depends(get_db)):
             "countdown_value": state.countdown_value if state else 0,
             "winner_declared": state.winner_declared if state else False
         },
-        "winner": {"id": winner.id, "name": winner.name, "stage_name": winner.stage_name, "photo_url": winner.photo_url, "points_total": winner.points_total, "gallery": winner_gallery} if winner else None,
+        "winner": {"id": winner.id, "name": winner.name, "stage_name": winner.stage_name, "category": winner.category, "bio": winner.bio, "photo_url": winner.photo_url, "points_total": winner.points_total, "votes_count": winner.votes_count, "percentage": (round((winner.points_total / (total_voters * 3)) * 100, 1) if total_voters > 0 else 0), "gallery": winner_gallery} if winner else None,
         "stats": {"total_voters": total_voters, "voted_count": voted_count, "audience_count": total_voters}
     }
 

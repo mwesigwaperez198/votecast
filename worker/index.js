@@ -123,7 +123,8 @@ async function handleApi(request, env, url) {
 
   if ((path === '/api/qr' || path === '/api/admin/qr') && method === 'GET') {
     const origin = url.origin;
-    return json({ url: `${origin}/voter`, voter_url: `${origin}/voter`, qr_code: null, data_url: null });
+    const voterUrl = `${origin}/voter/`;
+    return json({ url: voterUrl, voter_url: voterUrl, qr_code: null, data_url: null });
   }
 
   // Admin API
@@ -229,7 +230,7 @@ export default {
       }
     }
 
-    if ((url.pathname === '/voter' || url.pathname === '/cms' || url.pathname === '/scoreboard' || url.pathname === '/dashboard' || url.pathname === '/vote' || url.pathname === '/admin') && !url.pathname.endsWith('/')) {
+    if ((url.pathname === '/cms' || url.pathname === '/scoreboard' || url.pathname === '/dashboard' || url.pathname === '/vote' || url.pathname === '/admin') && !url.pathname.endsWith('/')) {
       return Response.redirect(url.pathname + '/', 302);
     }
 

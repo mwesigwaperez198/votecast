@@ -440,9 +440,9 @@ async function loadQR() {
     try {
         const res = await fetch(`${API_BASE}/api/qr`, { cache: 'no-store' });
         const data = await res.json();
-        renderQR(data.url || `${API_BASE}/voter`);
+        renderQR(data.url || `${API_BASE}/voter/`);
     } catch (e) {
-        renderQR(`${API_BASE}/voter`);
+        renderQR(`${API_BASE}/voter/`);
     }
 }
 

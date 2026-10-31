@@ -252,7 +252,7 @@ async def generate_qr(request: Request):
     import io
     import base64
     base_url = str(request.base_url).rstrip('/')
-    voter_url = f"{base_url}/voter"
+    voter_url = f"{base_url}/voter/"
     qr = qrcode.QRCode(version=1, box_size=10, border=5)
     qr.add_data(voter_url)
     qr.make(fit=True)

@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600;700&family=Cormorant:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/voter/style.css?v=5">
+    <link rel="stylesheet" href="/voter/style.css?v=6">
 </head>
 <body>
     <div class="noise"></div>
@@ -119,6 +119,14 @@
         </div>
     </div>
 
-    <script src="/voter/app.js?v=5"></script>
+    <div id="lightbox" class="lightbox" aria-hidden="true">
+        <button class="lb-close" type="button" data-close-lightbox aria-label="Close photo">&times;</button>
+        <button class="lb-nav lb-prev" id="lb-prev" type="button" aria-label="Previous photo">&#8249;</button>
+        <div class="lb-track" id="lb-track"></div>
+        <button class="lb-nav lb-next" id="lb-next" type="button" aria-label="Next photo">&#8250;</button>
+        <div class="lb-count" id="lb-count">1 / 1</div>
+    </div>
+
+    <script src="/voter/app.js?v=6"></script>
 </body>
 </html>

@@ -29,11 +29,31 @@ const overlayKicker = document.getElementById('overlay-kicker');
 const overlayTitle = document.getElementById('overlay-title');
 const overlayBody = document.getElementById('overlay-body');
 
+const modelModal = document.getElementById('model-modal');
+const modelHero = document.getElementById('model-hero');
+const modelHeroImg = document.getElementById('model-hero-img');
+const modelKicker = document.getElementById('model-kicker');
+const modelName = document.getElementById('model-name');
+const modelBio = document.getElementById('model-bio');
+const modelPts = document.getElementById('model-pts');
+const modelVotes = document.getElementById('model-votes');
+const modelPct = document.getElementById('model-pct');
+const modelGallery = document.getElementById('model-gallery');
+const lightbox = document.getElementById('lightbox');
+const lbTrack = document.getElementById('lb-track');
+const lbCount = document.getElementById('lb-count');
+const lbPrev = document.getElementById('lb-prev');
+const lbNext = document.getElementById('lb-next');
+
 const DEFAULT_MESSAGE = cdMessage ? cdMessage.innerHTML : '';
 let lastBoardSig = '';
 let lastWinSig = '';
 let lastStatus = '';
 let lastDisplaySig = '';
+let activeModel = null;
+let activeImages = [];
+let activeImageIndex = 0;
+let lastWinner = null;
 
 function imageOrPlaceholder(url) {
     return url && String(url).trim() ? url : PLACEHOLDER;
@@ -46,6 +66,176 @@ function attachFallback(img) {
         img.src = PLACEHOLDER;
     });
 }
+
+function modelImages(model) {
+    if (!model) return [];
+    const raw = Array.isArray(model.gallery) && model.gallery.length ? model.gallery : [];
+    const list = raw.map((g) => (typeof g === 'string' ? g : g && g.image_url)).filter(Boolean);
+    if (!list.length && model.photo_url) list.push(model.photo_url);
+    return [...new Set(list)];
+}
+
+function showHero(index) {
+    if (!activeImages.length) return;
+    const safe = Math.max(0, Math.min(index, activeImages.length - 1));
+    activeImageIndex = safe;
+    modelHeroImg.src = imageOrPlaceholder(activeImages[safe]);
+    modelGallery.querySelectorAll('img').forEach((img, i) => {
+        img.classList.toggle('active', i === safe);
+    });
+}
+
+function openModel(model) {
+    if (!model) return;
+    activeModel = model;
+    activeImages = modelImages(model);
+    activeImageIndex = 0;
+
+    modelKicker.textContent = model.category || model.stage_name || 'Fashion Model';
+    modelName.textContent = model.name || 'DA-VELA Model';
+    modelBio.textContent = model.bio || (model.stage_name ? `Stage name: ${model.stage_name}` : 'Step into the runway story.');
+    modelPts.textContent = String(model.points_total || 0);
+    modelVotes.textContent = String(model.votes_count || 0);
+    modelPct.textContent = `${model.percentage || 0}%`;
+
+    modelHeroImg.alt = model.name || 'Model';
+    modelHeroImg.src = imageOrPlaceholder(activeImages[0]);
+
+    modelGallery.innerHTML = '';
+    activeImages.forEach((src, index) => {
+        const thumb = document.createElement('img');
+        thumb.loading = 'lazy';
+        thumb.decoding = 'async';
+        thumb.src = imageOrPlaceholder(src);
+        thumb.alt = `${model.name || 'Model'} photo ${index + 1}`;
+        thumb.tabIndex = 0;
+        thumb.setAttribute('role', 'button');
+        attachFallback(thumb);
+        const open = () => {
+            showHero(index);
+            openLightbox(activeImages, index);
+        };
+        thumb.addEventListener('click', open);
+        thumb.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                open();
+            }
+        });
+        modelGallery.appendChild(thumb);
+    });
+    showHero(0);
+
+    modelModal.classList.add('active');
+    modelModal.setAttribute('aria-hidden', 'false');
+}
+
+function closeModel() {
+    if (!modelModal) return;
+    modelModal.classList.remove('active');
+    modelModal.setAttribute('aria-hidden', 'true');
+    activeModel = null;
+}
+
+function updateLightboxCount() {
+    if (!lbTrack || !lbCount) return;
+    const width = lbTrack.clientWidth || 1;
+    const index = Math.max(0, Math.min(Math.round(lbTrack.scrollLeft / width), activeImages.length - 1));
+    activeImageIndex = index;
+    lbCount.textContent = `${index + 1} / ${activeImages.length}`;
+}
+
+function openLightbox(images, index) {
+    if (!images || !images.length || !lightbox) return;
+    activeImages = images.slice();
+    activeImageIndex = Math.max(0, Math.min(index || 0, images.length - 1));
+
+    lbTrack.innerHTML = '';
+    images.forEach((src, i) => {
+        const slide = document.createElement('div');
+        slide.className = 'lb-slide';
+        const img = document.createElement('img');
+        img.src = imageOrPlaceholder(src);
+        img.alt = `${activeModel ? activeModel.name : 'Model'} photo ${i + 1}`;
+        img.decoding = 'async';
+        attachFallback(img);
+        slide.appendChild(img);
+        lbTrack.appendChild(slide);
+    });
+
+    lbPrev.style.display = images.length > 1 ? '' : 'none';
+    lbNext.style.display = images.length > 1 ? '' : 'none';
+    lightbox.classList.add('active');
+    lightbox.setAttribute('aria-hidden', 'false');
+    updateLightboxCount();
+
+    requestAnimationFrame(() => {
+        lbTrack.scrollLeft = activeImageIndex * (lbTrack.clientWidth || 1);
+        updateLightboxCount();
+    });
+}
+
+function closeLightbox() {
+    if (!lightbox) return;
+    lightbox.classList.remove('active');
+    lightbox.setAttribute('aria-hidden', 'true');
+    if (activeModel) showHero(activeImageIndex);
+}
+
+function stepLightbox(dir) {
+    if (!lbTrack) return;
+    const width = lbTrack.clientWidth || 1;
+    const next = Math.max(0, Math.min(activeImageIndex + dir, activeImages.length - 1));
+    if (next === activeImageIndex) return;
+    lbTrack.scrollTo({ left: next * width, behavior: 'smooth' });
+}
+
+document.querySelectorAll('[data-close-model]').forEach((el) => {
+    el.addEventListener('click', closeModel);
+});
+document.querySelectorAll('[data-close-lightbox]').forEach((el) => {
+    el.addEventListener('click', closeLightbox);
+});
+if (modelHero) {
+    modelHero.addEventListener('click', () => openLightbox(activeImages, activeImageIndex));
+}
+if (modelHeroImg) attachFallback(modelHeroImg);
+if (winPhoto) {
+    winPhoto.style.cursor = 'zoom-in';
+    winPhoto.addEventListener('click', () => {
+        if (lastWinner) openModel(lastWinner);
+    });
+}
+if (lbPrev) lbPrev.addEventListener('click', () => stepLightbox(-1));
+if (lbNext) lbNext.addEventListener('click', () => stepLightbox(1));
+
+let lbScrollFrame = 0;
+if (lbTrack) {
+    lbTrack.addEventListener('scroll', () => {
+        if (lbScrollFrame) return;
+        lbScrollFrame = requestAnimationFrame(() => {
+            lbScrollFrame = 0;
+            updateLightboxCount();
+        });
+    });
+}
+
+document.addEventListener('keydown', (e) => {
+    if (lightbox && lightbox.classList.contains('active')) {
+        if (e.key === 'Escape') closeLightbox();
+        else if (e.key === 'ArrowLeft') {
+            e.preventDefault();
+            stepLightbox(-1);
+        } else if (e.key === 'ArrowRight') {
+            e.preventDefault();
+            stepLightbox(1);
+        }
+        return;
+    }
+    if (modelModal && modelModal.classList.contains('active') && e.key === 'Escape') {
+        closeModel();
+    }
+});
 
 function setCountdown(active, value, status, force) {
     if (!cd) return;
@@ -67,7 +257,7 @@ function setCountdown(active, value, status, force) {
 }
 
 function renderBoard(contestants, stats) {
-    const sig = JSON.stringify(contestants.map((c) => [c.id, c.points_total, c.votes_count, c.percentage, c.photo_url]));
+    const sig = JSON.stringify(contestants.map((c) => [c.id, c.points_total, c.votes_count, c.percentage, c.photo_url, c.bio, (c.gallery || []).length]));
     if (sig === lastBoardSig) return;
     lastBoardSig = sig;
 
@@ -112,6 +302,16 @@ function renderBoard(contestants, stats) {
         row.querySelector('.pts').textContent = `${c.points_total || 0} pts`;
         row.querySelector('.sub').textContent = `AUDIENCE ${c.votes_count || 0} \u00B7 ADMIN ${c.admin_votes_count || 0}`;
         row.querySelector('.pill').textContent = `${c.percentage || 0}%`;
+        row.tabIndex = 0;
+        row.setAttribute('role', 'button');
+        row.setAttribute('aria-label', `View ${c.name || 'model'} profile`);
+        row.addEventListener('click', () => openModel(c));
+        row.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                openModel(c);
+            }
+        });
         board.appendChild(row);
     });
 
@@ -121,6 +321,7 @@ function renderBoard(contestants, stats) {
 }
 
 function renderWinner(winner, stats) {
+    lastWinner = winner || null;
     if (!winner) {
         win.classList.remove('active');
         lastWinSig = '';

@@ -388,8 +388,9 @@ body {
 
 .gallery-item img {
     width: 100%;
-    height: 220px;
-    object-fit: cover;
+    height: auto;
+    object-fit: contain;
+    background: linear-gradient(160deg, #0b3d23, #050805);
     display: block;
 }
 
@@ -432,14 +433,18 @@ body {
 
 .model-media {
     position: relative;
-    height: 280px;
+    aspect-ratio: 4 / 5;
+    height: auto;
     overflow: hidden;
+    display: grid;
+    place-items: center;
+    background: radial-gradient(160% 160% at 50% 0%, rgba(15, 124, 62, 0.18) 0%, #050805 100%);
 }
 
 .model-media img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
     filter: grayscale(0.2);
     transition: transform 0.8s ease;
 }
@@ -694,14 +699,18 @@ body {
     min-height: 280px;
     max-height: 78dvh;
     overflow: hidden;
+    display: grid;
+    place-items: center;
+    background: #050805;
 }
 
 .profile-media img {
     width: 100%;
-    height: 100%;
-    min-height: 280px;
-    object-fit: cover;
+    height: auto;
+    max-height: 78dvh;
+    object-fit: contain;
     display: block;
+    cursor: zoom-in;
 }
 
 .profile-body {
@@ -742,7 +751,8 @@ body {
 .profile-gallery img {
     width: 100%;
     aspect-ratio: 1;
-    object-fit: cover;
+    object-fit: contain;
+    background: #050805;
     cursor: pointer;
     border: 1px solid var(--line);
 }
@@ -752,11 +762,11 @@ body {
 @media (max-width: 680px) {
     .profile-card { grid-template-columns: 1fr; }
     .profile-media { max-height: 44dvh; min-height: 220px; }
-    .profile-media img { min-height: 220px; }
+    .profile-media img { min-height: 220px; max-height: 44dvh; }
     .ballot-grid { grid-template-columns: 1fr; }
-    .model-media { height: clamp(240px, 72vw, 360px); }
+    .model-media { aspect-ratio: 4 / 5; height: auto; }
     .gallery { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
-    .gallery-item img { height: clamp(170px, 54vw, 240px); }
+    .gallery-item img { height: auto; }
 }
 
 @media (max-width: 520px) {
@@ -770,12 +780,108 @@ body {
     .cta { width: 100%; justify-content: center; }
     .ballot-grid { gap: 12px; }
     .model-card { min-height: 0; }
-    .model-media { height: 220px; }
+    .model-media { height: auto; }
     .gallery { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-    .gallery-item img { height: 150px; }
+    .gallery-item img { height: auto; }
     .profile-card { max-height: 96dvh; }
 }
 
 @media (min-width: 900px) {
     .ballot-grid { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+}
+
+/* --- Full-size photo lightbox --- */
+.lightbox {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 600;
+    background: rgba(0, 0, 0, 0.98);
+}
+
+.lightbox.active { display: block; }
+
+.lb-track {
+    display: flex;
+    height: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+
+.lb-track::-webkit-scrollbar { display: none; }
+
+.lb-slide {
+    flex: 0 0 100%;
+    scroll-snap-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(48px, 8vh, 90px) clamp(12px, 6vw, 90px) clamp(56px, 10vh, 110px);
+}
+
+.lb-slide img {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    display: block;
+}
+
+.lb-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
+    width: 48px;
+    height: 48px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    border: 1px solid rgba(248, 247, 244, 0.3);
+    background: rgba(0, 0, 0, 0.55);
+    color: var(--text);
+    font-size: 30px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.lb-prev { left: clamp(8px, 2vw, 30px); }
+.lb-next { right: clamp(8px, 2vw, 30px); }
+
+.lb-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    z-index: 3;
+    width: 42px;
+    height: 42px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    border: 1px solid rgba(248, 247, 244, 0.35);
+    background: rgba(0, 0, 0, 0.6);
+    color: var(--text);
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.lb-count {
+    position: absolute;
+    left: 50%;
+    bottom: 18px;
+    transform: translateX(-50%);
+    z-index: 2;
+    text-transform: uppercase;
+    letter-spacing: 0.4em;
+    font-size: 10px;
+    color: var(--text-sub);
+}
+
+@media (max-width: 520px) {
+    .lb-nav { width: 40px; height: 40px; font-size: 24px; }
 }

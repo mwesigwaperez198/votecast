@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600;700;800;900&family=Cormorant:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/scoreboard/style.css?v=10">
+    <link rel="stylesheet" href="/scoreboard/style.css?v=11">
 </head>
 <body>
     <div class="noise"></div>
@@ -82,7 +82,10 @@
                         <div class="board-kicker">DA-VELA HOUSE OF ART</div>
                         <h2 class="board-title">LIVE RANKINGS</h2>
                     </div>
-                    <div class="board-meta" id="board-meta">0 MODELS &middot; 0 VOTES</div>
+                    <div class="board-side">
+                        <div class="board-meta" id="board-meta">0 MODELS &middot; 0 VOTES</div>
+                        <div class="board-hint">Tap a model for their full profile &amp; gallery</div>
+                    </div>
                 </div>
                 <div class="board" id="board"></div>
             </div>
@@ -93,6 +96,38 @@
         </footer>
     </div>
 
-    <script src="/scoreboard/app.js?v=10"></script>
+    <div id="model-modal" class="model-modal" aria-hidden="true">
+        <div class="model-backdrop" data-close-model></div>
+        <div class="model-card" role="dialog" aria-modal="true" aria-labelledby="model-name">
+            <button class="model-close" type="button" data-close-model aria-label="Close profile">&times;</button>
+            <div class="model-media">
+                <button class="model-hero" id="model-hero" type="button" aria-label="View photo larger">
+                    <img id="model-hero-img" src="" alt="">
+                </button>
+                <div class="model-gallery" id="model-gallery" aria-label="Model gallery"></div>
+            </div>
+            <div class="model-body">
+                <div class="model-kicker" id="model-kicker"></div>
+                <h2 class="model-name" id="model-name"></h2>
+                <p class="model-bio" id="model-bio"></p>
+                <div class="model-stats">
+                    <div class="model-stat"><span id="model-pts">0</span><small>POINTS</small></div>
+                    <div class="model-stat"><span id="model-votes">0</span><small>AUDIENCE</small></div>
+                    <div class="model-stat"><span id="model-pct">0%</span><small>SHARE</small></div>
+                </div>
+                <div class="model-hint">Tap any photo to view it full size &middot; swipe for more</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="lightbox" class="lightbox" aria-hidden="true">
+        <button class="lb-close" type="button" data-close-lightbox aria-label="Close photo">&times;</button>
+        <button class="lb-nav lb-prev" id="lb-prev" type="button" aria-label="Previous photo">&#8249;</button>
+        <div class="lb-track" id="lb-track"></div>
+        <button class="lb-nav lb-next" id="lb-next" type="button" aria-label="Next photo">&#8250;</button>
+        <div class="lb-count" id="lb-count">1 / 1</div>
+    </div>
+
+    <script src="/scoreboard/app.js?v=11"></script>
 </body>
 </html>

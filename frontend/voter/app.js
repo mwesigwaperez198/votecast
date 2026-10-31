@@ -25,6 +25,11 @@ const profileName = document.getElementById('profile-name');
 const profileBio = document.getElementById('profile-bio');
 const profileGallery = document.getElementById('profile-gallery');
 const profileVote = document.getElementById('profile-vote');
+const lightbox = document.getElementById('lightbox');
+const lbTrack = document.getElementById('lb-track');
+const lbCount = document.getElementById('lb-count');
+const lbPrev = document.getElementById('lb-prev');
+const lbNext = document.getElementById('lb-next');
 
 let sessionToken = localStorage.getItem('votecast_token');
 let voterInfo = JSON.parse(localStorage.getItem('votecast_voter') || 'null');
@@ -33,6 +38,9 @@ let selectedContestant = null;
 let lastStatus = null;
 let votingLoaded = false;
 let galleryLoaded = false;
+let profileImages = [];
+let activeImageIndex = 0;
+let activeModelName = '';
 
 function imageOrPlaceholder(url) {
     return url && String(url).trim() ? url : PLACEHOLDER;
@@ -45,6 +53,92 @@ function attachFallback(img) {
         img.src = PLACEHOLDER;
     });
 }
+
+function updateLightboxCount() {
+    if (!lbTrack || !lbCount) return;
+    const width = lbTrack.clientWidth || 1;
+    const index = Math.max(0, Math.min(Math.round(lbTrack.scrollLeft / width), profileImages.length - 1));
+    activeImageIndex = index;
+    lbCount.textContent = `${index + 1} / ${profileImages.length}`;
+}
+
+function openLightbox(images, index) {
+    if (!images || !images.length || !lightbox) return;
+    profileImages = images.slice();
+    activeImageIndex = Math.max(0, Math.min(index || 0, profileImages.length - 1));
+
+    lbTrack.innerHTML = '';
+    profileImages.forEach((src, i) => {
+        const slide = document.createElement('div');
+        slide.className = 'lb-slide';
+        const img = document.createElement('img');
+        img.src = imageOrPlaceholder(src);
+        img.alt = `${activeModelName || 'Model'} photo ${i + 1}`;
+        img.decoding = 'async';
+        attachFallback(img);
+        slide.appendChild(img);
+        lbTrack.appendChild(slide);
+    });
+
+    lbPrev.style.display = profileImages.length > 1 ? '' : 'none';
+    lbNext.style.display = profileImages.length > 1 ? '' : 'none';
+    lightbox.classList.add('active');
+    lightbox.setAttribute('aria-hidden', 'false');
+    updateLightboxCount();
+
+    requestAnimationFrame(() => {
+        lbTrack.scrollLeft = activeImageIndex * (lbTrack.clientWidth || 1);
+        updateLightboxCount();
+    });
+}
+
+function closeLightbox() {
+    if (!lightbox) return;
+    lightbox.classList.remove('active');
+    lightbox.setAttribute('aria-hidden', 'true');
+}
+
+function stepLightbox(dir) {
+    if (!lbTrack) return;
+    const width = lbTrack.clientWidth || 1;
+    const next = Math.max(0, Math.min(activeImageIndex + dir, profileImages.length - 1));
+    if (next === activeImageIndex) return;
+    lbTrack.scrollTo({ left: next * width, behavior: 'smooth' });
+}
+
+document.querySelectorAll('[data-close-lightbox]').forEach((el) => {
+    el.addEventListener('click', closeLightbox);
+});
+if (lbPrev) lbPrev.addEventListener('click', () => stepLightbox(-1));
+if (lbNext) lbNext.addEventListener('click', () => stepLightbox(1));
+
+let lbScrollFrame = 0;
+if (lbTrack) {
+    lbTrack.addEventListener('scroll', () => {
+        if (lbScrollFrame) return;
+        lbScrollFrame = requestAnimationFrame(() => {
+            lbScrollFrame = 0;
+            updateLightboxCount();
+        });
+    });
+}
+
+document.addEventListener('keydown', (e) => {
+    if (lightbox && lightbox.classList.contains('active')) {
+        if (e.key === 'Escape') closeLightbox();
+        else if (e.key === 'ArrowLeft') {
+            e.preventDefault();
+            stepLightbox(-1);
+        } else if (e.key === 'ArrowRight') {
+            e.preventDefault();
+            stepLightbox(1);
+        }
+        return;
+    }
+    if (profileModal && profileModal.classList.contains('active') && e.key === 'Escape') {
+        closeProfile();
+    }
+});
 
 async function fetchState() {
     try {
@@ -115,8 +209,15 @@ async function loadGallery(force) {
             img.alt = item.name || 'Gallery image';
             attachFallback(img);
             card.querySelector('strong').textContent = item.name || 'DA-VELA Model';
-            card.addEventListener('click', () => {
-                const model = contestantsCache.find((c) => c.id === item.contestant_id);
+            card.addEventListener('click', async () => {
+                let model = contestantsCache.find((c) => c.id === item.contestant_id);
+                if (!model) {
+                    try {
+                        const res = await fetch(`${API_BASE}/api/vote/contestants`, { cache: 'no-store' });
+                        if (res.ok) contestantsCache = await res.json();
+                        model = contestantsCache.find((c) => c.id === item.contestant_id);
+                    } catch (e) {}
+                }
                 openProfile(model || item);
             });
             gallery.appendChild(card);
@@ -130,31 +231,44 @@ async function loadGallery(force) {
 function openProfile(model) {
     if (!model) return;
     selectedContestant = model;
+    activeModelName = model.name || 'Model';
     const galleryItems = model.gallery && model.gallery.length
-        ? model.gallery
+        ? model.gallery.map((g) => (typeof g === 'string' ? g : g && g.image_url)).filter(Boolean)
         : (model.photo_url ? [model.photo_url] : []);
     const hero = galleryItems[0] || model.image_url || '';
+    profileImages = galleryItems.length ? [...new Set(galleryItems)] : [hero].filter(Boolean);
 
     profileMedia.innerHTML = '<img loading="eager" decoding="async" alt="">';
     const heroImg = profileMedia.querySelector('img');
     heroImg.src = imageOrPlaceholder(hero);
     heroImg.alt = model.name || 'Model';
     attachFallback(heroImg);
+    heroImg.addEventListener('click', () => openLightbox(profileImages, 0));
 
     profileKicker.textContent = model.category || 'Fashion Model';
     profileName.textContent = model.name || 'DA-VELA Model';
     profileBio.textContent = model.bio || (model.stage_name ? `Stage name: ${model.stage_name}` : 'Step into the runway story.');
 
     profileGallery.innerHTML = '';
-    galleryItems.slice(0, 8).forEach((src) => {
+    profileImages.slice(0, 8).forEach((src, index) => {
         const thumb = document.createElement('img');
         thumb.loading = 'lazy';
         thumb.decoding = 'async';
         thumb.src = imageOrPlaceholder(src);
         thumb.alt = model.name || 'Gallery';
+        thumb.tabIndex = 0;
+        thumb.setAttribute('role', 'button');
         attachFallback(thumb);
-        thumb.addEventListener('click', () => {
+        const open = () => {
             heroImg.src = imageOrPlaceholder(src);
+            openLightbox(profileImages, index);
+        };
+        thumb.addEventListener('click', open);
+        thumb.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                open();
+            }
         });
         profileGallery.appendChild(thumb);
     });
